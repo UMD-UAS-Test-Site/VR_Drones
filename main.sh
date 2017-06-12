@@ -39,8 +39,7 @@ echo $arg >> .shared.txt
 ./$2 &
 #consider adding some information to the .shared.txt file to tell
 #bash when unity has finished launching
-sleep 10
-
+sleep 4
 if [ $c -eq 1 ] 
 then
     echo "Deleting previous image files"
@@ -48,7 +47,7 @@ fi
 if [ $v -eq 1 ] 
 then
     echo "running vlc"
-    /mnt/d/Program\ Files/VideoLAN/VLC/vlc.exe rtsp://admin:@192.168.1.10/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp --video-filter=scene --scene-prefix='Test_img' --scene-path='"C:\\Users\\Kameron\\AppData\\LocalLow\\DefaultCompany\\Drone Swarm\\Feed1"' &
+    /mnt/d/Program\ Files/VideoLAN/VLC/vlc.exe rtsp://admin:@192.168.1.10/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp --video-filter=scene --scene-ratio=20 --scene-prefix='Test_img' --scene-path='D:\\Files\\DroneSwarm\\Images\\Feed1' &
 fi
 if [ $m -eq 1 ] 
 then

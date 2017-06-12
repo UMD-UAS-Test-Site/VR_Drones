@@ -2,10 +2,10 @@ Mono path[0] = 'D:/Files/DroneSwarm/TestBuild_Data/Managed'
 Mono path[1] = 'D:/Files/DroneSwarm/TestBuild_Data/Mono'
 Mono config path = 'D:/Files/DroneSwarm/TestBuild_Data/Mono/etc'
 PlayerConnection initialized from D:/Files/DroneSwarm/TestBuild_Data (debug = 0)
-PlayerConnection initialized network socket : 0.0.0.0 55271
-Multi-casting "[IP] 192.168.1.116 [Port] 55271 [Flags] 2 [Guid] 2791858353 [EditorId] 3438940217 [Version] 1048832 [Id] WindowsPlayer(Integrator) [Debug] 0" to [225.0.0.222:54997]...
-Started listening to [0.0.0.0:55271]
-PlayerConnection already initialized - listening to [0.0.0.0:55271]
+PlayerConnection initialized network socket : 0.0.0.0 55396
+Multi-casting "[IP] 192.168.1.8 [Port] 55396 [Flags] 2 [Guid] 3477351750 [EditorId] 4172648855 [Version] 1048832 [Id] WindowsPlayer(Integrator) [Debug] 0" to [225.0.0.222:54997]...
+Started listening to [0.0.0.0:55396]
+PlayerConnection already initialized - listening to [0.0.0.0:55396]
 Initialize engine version: 5.5.1f1 (88d00a7498cd)
 GfxDevice: creating device client; threaded=1
 Direct3D:
@@ -25,16 +25,14 @@ Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.Networ
 Loading D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
 Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll (this message is harmless)
 Loading D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll into Unity Child Domain
-- Completed reload, in  0.386 seconds
+- Completed reload, in  0.098 seconds
 Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\System.Core.dll (this message is harmless)
 Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\System.dll (this message is harmless)
 <RI> Initializing input.
 <RI> Input initialized.
 desktop: 2880x1620 59Hz; virtual: 2880x1620 at 0,0
 <RI> Initialized touch support.
-UnloadTime: 4.941347 ms
+UnloadTime: 5.378580 ms
 Setting up 2 worker threads for Enlighten.
-  Thread -> id: 320c -> priority: 1 
-  Thread -> id: 2774 -> priority: 1 
--c 'rm /mnt/c/Users/Kameron/AppData/LocalLow/DefaultCompany/Drone\ Swarm/Feed1/*.png'
-ApplicationName='bash', CommandLine='-c 'rm /mnt/c/Users/Kameron/AppData/LocalLow/DefaultCompany/Drone\ Swarm/Feed1/*.png'', CurrentDirectory=''
+  Thread -> id: 3578 -> priority: 1 
+  Thread -> id: fcc -> priority: 1 

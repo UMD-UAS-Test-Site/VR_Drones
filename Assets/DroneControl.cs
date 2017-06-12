@@ -38,7 +38,11 @@ public class DroneControl : MonoBehaviour {
     public uint feed;
     public bool mainScreen = false; //Is this DroneControl running on the main screen
     //string nextImage = ""; //contains the name of the next image to be loaded
-    string bash_path = "/mnt/c/Users/Kameron/AppData/LocalLow/DefaultCompany/Drone\\ Swarm";
+    //string bash_path = "/mnt/d/Files/DroneSwarm"; //obsolete; bash doesn't have permissions on standalone applications
+    string w_image_path = "D:/Files/DroneSwarm/Images";
+    string w_main_path = "D:/Files/DroneSwarm";
+    string current_file = "";
+    //string old_bash_path = "/mnt/c/Users/Kameron/AppData/LocalLow/DefaultCompany/Drone\\ Swarm";
     //bool resume = false; //ndicates an image has started loading, but did not complete
     //bool done = false; //indicates an image has finished loading, 
     public bool matlab_active = false; //for testing, turns on Matlab componenet
@@ -133,29 +137,12 @@ public class DroneControl : MonoBehaviour {
                 process.Close();
             }
             //remove extra files
-            System.Diagnostics.Process rm = new System.Diagnostics.Process();
-            rm.StartInfo.UseShellExecute = false;
-            rm.StartInfo.CreateNoWindow = true;
-            rm.StartInfo.RedirectStandardError = true;
-            rm.StartInfo.FileName = "bash";
-            rm.StartInfo.Arguments = "-c 'rm " + bash_path
-                + "/Feed" + feed 
-                + "/*.png'";
-            Debug.Log(rm.StartInfo.Arguments);
-            string output = "";
-
-            /* Removes all the files in the Feed Folders; Completely Untested*/
-            try {
-                rm.Start();
-                output = rm.StandardError.ReadToEnd();
-                Debug.Log(output);
-            }
-            catch (Exception e) {
-                Debug.Log(e.Message);
-            }
-            finally {
-                rm.Dispose();
-                rm = null;
+            string[] files = Directory.GetFiles(getFeedPath());
+            for (int i = 1; i < files.Length; i++) {
+                if (files[i].Substring(files[i].Length - 3, 4) == ".png"
+                    || files[i].Substring(files[i].Length - 3, 4) == ".swp") {
+                    System.IO.File.Delete(files[i]);
+                }
             }
         }
     }
@@ -172,7 +159,9 @@ public class DroneControl : MonoBehaviour {
 
     }
 
-
+    string getFeedPath() {
+        return w_image_path + "/Feed" + feed;
+    }
     //this function sends fly commands to QGC
     /*
      * Precondition:    
@@ -196,16 +185,17 @@ public class DroneControl : MonoBehaviour {
      * Postcondition:   Loads the image onto the texture
      * Notes:           At the current moment, this is running every single update
      *                  This is unnecessary
-     * 
+     *                  
      */
     void receiveVideo() {
-        byte[] data = System.IO.File.ReadAllBytes(getNextImage());
+        current_file = getNextImage();
+        byte[] data = System.IO.File.ReadAllBytes(current_file);
         image_tex = new Texture2D((int)GetComponent<Transform>().localScale.x,
             (int)GetComponent<Transform>().localScale.z,
             TextureFormat.DXT1, false);
         image_tex.LoadImage(data);
         GetComponent<Renderer>().material.mainTexture = image_tex;
-
+        
 
         /*
         if (resume) {
@@ -264,7 +254,7 @@ public class DroneControl : MonoBehaviour {
             return 1;
         //attempt to open a stream and read from the file
         try {
-            StreamReader sr = new StreamReader(Application.persistentDataPath + "/.shared.txt");
+            StreamReader sr = new StreamReader(w_main_path + "/.shared.txt");
             string data = sr.ReadLine();
             for (int i = 0; i < 4; i++) 
                 order[i] = Convert.ToUInt32(data[i]);
@@ -284,7 +274,14 @@ public class DroneControl : MonoBehaviour {
     void removeImages() {
         //only the mainScreen deletes images
         if (mainScreen) {
-
+            string[] files = Directory.GetFiles(getFeedPath());
+            //look through all the files in the Feed Folder
+            for (int i = 1; i < files.Length; i++) {
+                //if the file is not the one currently being loaded, delete it
+                if (files[i] != current_file) {
+                    System.IO.File.Delete(files[i]);
+                }
+            }
         }
     }
 
@@ -303,13 +300,14 @@ public class DroneControl : MonoBehaviour {
         string best_name = "";
         //DirectoryInfo location = new DirectoryInfo(Application.persistentDataPath);
         //var File = location.GetFiles().O
-        string[] files = Directory.GetFiles(Application.persistentDataPath 
-            + "/Feed" + feed + "/"
-            );
+        string[] files = Directory.GetFiles(getFeedPath());
         best_name = files[0];
         best_time = File.GetLastWriteTime(files[0]);
+        //iterate through all files in folder, looking for the most recent one
         for (int i = 1; i < files.Length; i++) {
-            if (File.GetLastWriteTime(files[i]) > best_time) {
+            //more recent =:= greater DateTime
+            if (File.GetLastWriteTime(files[i]) > best_time &&
+                files[i].Substring(files[i].Length - 3, 3) == "png") {
                 best_name = files[i];
                 best_time = File.GetLastWriteTime(files[i]);
             }
