@@ -37,27 +37,15 @@ public class DroneControl : MonoBehaviour {
     WWW imageLocation; // the URL/File Location of the next image to be loaded
     public uint feed;
     public bool mainScreen = false; //Is this DroneControl running on the main screen
-    //string nextImage = ""; //contains the name of the next image to be loaded
-    //string bash_path = "/mnt/d/Files/DroneSwarm"; //obsolete; bash doesn't have permissions on standalone applications
     string w_image_path = "D:/Files/DroneSwarm/Images";
     string w_main_path = "D:/Files/DroneSwarm";
     string current_file = "";
-    //string old_bash_path = "/mnt/c/Users/Kameron/AppData/LocalLow/DefaultCompany/Drone\\ Swarm";
-    //bool resume = false; //ndicates an image has started loading, but did not complete
     bool done = true; //indicates an image has finished loading, 
     public bool matlab_active = false; //for testing, turns on Matlab componenet
     public bool vlc_active = false; //for testing, turns on vlc components
-    public bool var_f_rate = false; //indicates whether the frame rate is different
-    // from the default frame rate
     int f_rate = 20;
-    //string location = "D:\\Files\\DroneSwarm\\Images\\Feed";
     uint[] order; //stores the importance of the video feeds from matlab
-    //float refresh = .2f; //obsolete; timer indicates a new image should be loaded
-                         //swap to simply look for the most recent file
-    //float last = 0; //obsolete; UNIX time the last image was loaded onto the screen
-    System.Diagnostics.Process ls; //ls process; outdated System.IO is now used instead
-    System.Diagnostics.Process matlab; //matlab process; outdated, app launched from main.sh 
-    System.Diagnostics.Process vlc; //vlc process; outdated, app launched from main.sh
+
 
 
     /*
@@ -69,54 +57,7 @@ public class DroneControl : MonoBehaviour {
      */
     void Start() {
         order = new uint[4];
-        getImageProcess();
-        //check to see if the frame rate is different from normal
-        /*
-        try {
-            StreamReader sr = new StreamReader(w_main_path + "/.shared.txt");
-            f_rate =  Convert.ToInt32(sr.ReadLine());
-            sr.Close();
-        }
-        catch (Exception e) {
-            Debug.Log(e.Message);
-        }
-        
-        /* Launch VLC if that application is active*/
-        //        if (vlc_active) {
-        //            vlc = new System.Diagnostics.Process();
-        //            vlc.StartInfo.UseShellExecute = false;
-        //            vlc.StartInfo.FileName = "bash";
-        //vlc.StartInfo.WorkingDirectory = "D:\\Files\\DroneSwarm";
-        //            vlc.StartInfo.Arguments = "-c '/mnt/d/Files/DroneSwarm/launchVLC.sh '";    
-        // "rtsp://admin:@192.168.1.10/" 
-        //+ "user=admin_password=tlJwpbo6_channel=1_stream=0.sdp " 
-        //+ "--video-filter=scene --scene-ratio=10 --scene-prefix='Test_img' " 
-        //+ "--scene-path='D:\\Files\\DroneSwarm\\Images\\Feed" + feed + "'"; 
-        //            Debug.Log(vlc.StartInfo.Arguments);
-        //            try {
-        //                vlc.Start();
-        //            }
-        //            catch (Exception e) {
-        //                Debug.Log(e.Message);
-        //                Debug.Log(e.InnerException);
-        //            }
-        //        }
-        /* 
-         * Launch matlab if that application is necessary
-         * Also gives matlab the feed number in arg1
-         */
-        //       if (matlab_active) {
-        //           matlab = new System.Diagnostics.Process();
-        //           matlab.StartInfo.UseShellExecute = false;
-        //           matlab.StartInfo.FileName = "matlab";
-        //           matlab.StartInfo.Arguments = "-automation -r arg1=" + feed +
-        //                                        "; run('D:\\Files\\DroneSwarm\\detectX.m')";
-        //           try {
-        //               matlab.Start();
-        //           } catch (Exception e) {
-        //               Debug.Log(e.Message);
-        //           }
-        //      }
+        getImageProcess();        
     }
     // matlab -automation -r 'run('D:\Files\DroneSwarm\detectX.m')'
     /*
@@ -144,9 +85,8 @@ public class DroneControl : MonoBehaviour {
                 matlab = null;
             }
         }
-       //only need to close VLC and delete images if VLC is active
+        //delete image files
         if (vlc_active) {
-            //Look For VLC instances and Close them
             foreach (var process in System.Diagnostics.Process.GetProcessesByName("vlc")) {
                 process.CloseMainWindow();
                 process.Close();
@@ -162,32 +102,9 @@ public class DroneControl : MonoBehaviour {
         }
     }
 
-
-    //The only messages that would come directly from QGC are error messages
-    /*
-     * Precondition:    
-     * Postcondition:   
-     * Notes:           
-     * 
-     */
-    void receiveCommand() {
-
-    }
-
     string getFeedPath() {
         return w_image_path + "/Feed" + feed;
     }
-    //this function sends fly commands to QGC
-    /*
-     * Precondition:    
-     * Postcondition:   
-     * Notes:  This function is no longer included in the project scope         
-     * 
-     */
-    /*void relayCommand() {
-    
-    } */
-
 
     // this function gets the video feeds from QGC
     // This function will make use of Resource Load / Unload, (lol)
@@ -213,7 +130,6 @@ public class DroneControl : MonoBehaviour {
         image_tex = new Texture2D((int)GetComponent<Transform>().localScale.x,
             (int)GetComponent<Transform>().localScale.z,
             TextureFormat.DXT1, false);
-        Debug.Log("loading a new iamge");
         if (!image_tex.LoadImage(data)) {
             Debug.Log("mega failure");
         }
@@ -221,43 +137,6 @@ public class DroneControl : MonoBehaviour {
         current_file = next_file;
         done = true;
         removeImages();
-        /*
-        if (resume) {
-            Debug.Log("had to wait on image " + nextImage);
-            if (imageLocation.isDone) {
-                imageLocation.LoadImageIntoTexture(image_tex);
-                GetComponent<Renderer>().material.mainTexture = image_tex;
-                resume = false;
-                last = Time.time;
-            }
-        }
-        //check to see if it is now time to display a new frame
-        else if (last + refresh < Time.time) {
-            if (mainScreen) {
-                uint newFeed = getImageProcess();
-                if (newFeed != feed) {
-                    Debug.Log("Feed has changed");
-
-                }
-                feed = newFeed;
-            }
-            image_tex = new Texture2D((int)GetComponent<Transform>().localScale.x,
-                (int)GetComponent<Transform>().localScale.z,
-                TextureFormat.DXT1, false);
-            imageLocation = new WWW("file:///" + Application.persistentDataPath + "/Feed" + feed 
-                            + "/" + getNextImage());
-            Debug.Log(imageLocation.url);
-            Debug.Log("next is : " + getNextImage());
-            if (imageLocation.isDone) {
-                imageLocation.LoadImageIntoTexture(image_tex);
-                GetComponent<Renderer>().material.mainTexture = image_tex;
-                last = Time.time;
-            }
-            else {
-                resume = true;
-            }
-        }
-        */
     }
 
 
@@ -300,14 +179,11 @@ public class DroneControl : MonoBehaviour {
         if (mainScreen) {
             string[] files = Directory.GetFiles(getFeedPath());
             //look through all the files in the Feed Folder
-            Debug.Log("looking for files");
-            Debug.Log(files.Length);
             for (int i = 0; i < files.Length; i++) {
                 //if the file is not the one currently being loaded, delete it
                 if (files[i] != current_file 
                     && ! files[i].Contains("Test1.jpg")
                     && ! files[i].Contains(".swp")) {
-                    Debug.Log("found some files");
                     System.IO.File.Delete(files[i]);
                 }
             }
@@ -328,8 +204,6 @@ public class DroneControl : MonoBehaviour {
         string output = "";
         DateTime best_time;
         string best_name = "";
-        //DirectoryInfo location = new DirectoryInfo(Application.persistentDataPath);
-        //var File = location.GetFiles().O
         string[] files = Directory.GetFiles(getFeedPath());
         if (files.Length == 0)
             return "File_not_found";
@@ -345,29 +219,6 @@ public class DroneControl : MonoBehaviour {
             }
         }
         output = best_name;
-        Debug.Log("nextImage Time" + (Time.time - timeStart));
-        //        ls = new System.Diagnostics.Process();
-        //        ls.StartInfo.UseShellExecute = false;
-        //        ls.StartInfo.CreateNoWindow = true;
-        //        ls.StartInfo.RedirectStandardOutput = true;
-        //        ls.StartInfo.FileName = "bash";
-        //        ls.StartInfo.Arguments = "-c 'ls -t " + bash_path 
-        //            + "/Feed" + feed 
-        //            + "/'";
-        //        ls.StartInfo.RedirectStandardError = true;
-        //attempt to launch the ls command
-        //        try {
-        //            ls.Start();
-        //get the first line of ls
-        //            output = ls.StandardOutput.ReadLine();
-        //        }
-        //        catch (Exception e) {
-        //            Debug.Log(e.Message);
-        //        }
-        //        finally {
-        //            ls.Dispose();
-        //            ls = null;
-        //        }
         return output;
     }
 

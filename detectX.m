@@ -10,24 +10,29 @@
 
 %this mypath stuff is actually uncessary because Matlab needs to look in
 %all the feeds, not just 1 of them
-arg1=1
+load('rcnnTargets.mat', 'rcnn');
+
+
 while true 
-    filename = "D:\Files\DroneSwarm\.shared.txt";
-    mypath = [char("D:\Files|DroneSwarm\Images\Feed")  char(arg1)];
-    choice = ["1", "2", "3", "4"];
-    s ="";
-    %%% Part 1
-    %This part of the program will involve reading from a video file
+    for i=1:4
+        filename = "D:\Files\DroneSwarm\.shared.txt";
+        mypath = [char("D:\Files|DroneSwarm\Images\Feed")  char(i)];
+        choice = ["1", "2", "3", "4"];
+        s ="";
+        %%% Part 1
+        %This part of the program will involve reading from a video file
+        d = dir(mypath);
+        [dx,dx] = sort([d.datenum]);
+        imgfile = d(dx == 1).name;
+        image = imread([mypath '\' imgfile]);
     
-    d = dir(mypath);
-    [dx,dx] = sort([d.datenum]);
-    imgfile = d(dx == 1).name;
-    image = imread([mypath '\' imgfile]);
-    
-    
-    %%% Part 2
-    
-    
+        %%% Part 2
+        %I have no idea what MiniBatchSize or 128 do
+        [bboxes, score, label] = detect(rcnn, image, 'MiniBatchSize', 128);
+        %need to iterate through scores to determine if any exceed a
+        %threshold
+        
+    end
     %%% Part 3
     %This part of the program will involve opening a file, writing to it, and
     %closing it, to ensure that Unity can then read the file.
