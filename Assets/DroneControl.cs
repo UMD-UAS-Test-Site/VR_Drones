@@ -15,50 +15,50 @@ using UnityEngine;
  * 
  */
 
-    /* 
-     * Receiving Commands will be last, because I'm not sure about exactly what type of controller will be used
-     * However I should still make skeleton functions for the other control methods
-     * 
-     * Receiving data from MATLAB will be pretty simple, in the Start script it will be necessary to run an instance of the MATLAB sccript.
-     * MATLAB will then spit out numbers every now and then, and my program will respond
-     * 
-     * Sending commands to the Ground Station is should also come later its unknown whether or not this is still lin my project scope
-     * 
-     * Receiving and Displaying data from Ground Station should come later.  This is the part Josh said will be most difficult
-     * 
-     * Didsplaying the data is also kinda difficult.  I have yet to redesign the GUI so its not entirely clear what this will look like
-     * 
-     * Order 3, 5(pseudocode), 2, 1, 4
-     * 
-     */
+/* 
+* Receiving Commands will be last, because I'm not sure about exactly what type of controller will be used
+* However I should still make skeleton functions for the other control methods
+* 
+* Receiving data from MATLAB will be pretty simple, in the Start script it will be necessary to run an instance of the MATLAB sccript.
+* MATLAB will then spit out numbers every now and then, and my program will respond
+* 
+* Sending commands to the Ground Station is should also come later its unknown whether or not this is still lin my project scope
+* 
+* Receiving and Displaying data from Ground Station should come later.  This is the part Josh said will be most difficult
+* 
+* Didsplaying the data is also kinda difficult.  I have yet to redesign the GUI so its not entirely clear what this will look like
+* 
+* Order 3, 5(pseudocode), 2, 1, 4
+* 
+*/
 public class DroneControl : MonoBehaviour {
 
     Texture2D image_tex;
     WWW imageLocation; // the URL/File Location of the next image to be loaded
     public uint feed;
     public bool mainScreen = false; //Is this DroneControl running on the main screen
-    //string nextImage = ""; //contains the name of the next image to be loaded
-    //string bash_path = "/mnt/d/Files/DroneSwarm"; //obsolete; bash doesn't have permissions on standalone applications
     string w_image_path = "D:/Files/DroneSwarm/Images";
     string w_main_path = "D:/Files/DroneSwarm";
     string current_file = "";
-    //string old_bash_path = "/mnt/c/Users/Kameron/AppData/LocalLow/DefaultCompany/Drone\\ Swarm";
-    //bool resume = false; //ndicates an image has started loading, but did not complete
     bool done = true; //indicates an image has finished loading, 
     public bool matlab_active = false; //for testing, turns on Matlab componenet
+    public bool target_detector_active = false;
     public bool vlc_active = false; //for testing, turns on vlc components
-    public bool var_f_rate = false; //indicates whether the frame rate is different
+    //public bool var_f_rate = false; //indicates whether the frame rate is different
     // from the default frame rate
-    int f_rate = 20;
-    //string location = "D:\\Files\\DroneSwarm\\Images\\Feed";
-    uint[] order; //stores the importance of the video feeds from matlab
-    //float refresh = .2f; //obsolete; timer indicates a new image should be loaded
-                         //swap to simply look for the most recent file
-    //float last = 0; //obsolete; UNIX time the last image was loaded onto the screen
+    //int f_rate = 20;
+    float[] confidence; //stores the importance of the video feeds from matlab
     System.Diagnostics.Process ls; //ls process; outdated System.IO is now used instead
     System.Diagnostics.Process matlab; //matlab process; outdated, app launched from main.sh 
     System.Diagnostics.Process vlc; //vlc process; outdated, app launched from main.sh
-
+    /*string nextImage = ""; //contains the name of the next image to be loaded
+    //string bash_path = "/mnt/d/Files/DroneSwarm"; //obsolete; bash doesn't have permissions on standalone applications
+    //string old_bash_path = "/mnt/c/Users/Kameron/AppData/LocalLow/DefaultCompany/Drone\\ Swarm";
+    //bool resume = false; //ndicates an image has started loading, but did not complete
+    //string location = "D:\\Files\\DroneSwarm\\Images\\Feed";
+    //float refresh = .2f; //obsolete; timer indicates a new image should be loaded
+    //swap to simply look for the most recent file
+    //float last = 0; //obsolete; UNIX time the last image was loaded onto the screen*/
 
     /*
      * Precondition:    None
@@ -68,57 +68,76 @@ public class DroneControl : MonoBehaviour {
      * 
      */
     void Start() {
-        order = new uint[4];
-        getImageProcess();
-        //check to see if the frame rate is different from normal
-        /*
-        try {
-            StreamReader sr = new StreamReader(w_main_path + "/.shared.txt");
-            f_rate =  Convert.ToInt32(sr.ReadLine());
-            sr.Close();
+        confidence = new float[4];
+
+        // read .shared.txt to find out what mode it was launched in from the 
+        // shell
+        if (!Application.isEditor) {
+            try {
+                StreamReader sr = new StreamReader(w_main_path + "/.shared.txt");
+                string data = sr.ReadLine();
+                vlc_active = data.Contains("v") ? true : false;
+                matlab_active = data.Contains("m") && mainScreen ? true : false;
+                target_detector_active = data.Contains("t") && mainScreen ? true : false;
+            }
+            catch (Exception e) {
+                Debug.Log(e.Message);
+                Debug.Log("coulnd not read settings from .shared.txt");
+            }
+
         }
-        catch (Exception e) {
-            Debug.Log(e.Message);
-        }
-        
-        /* Launch VLC if that application is active*/
-        //        if (vlc_active) {
-        //            vlc = new System.Diagnostics.Process();
-        //            vlc.StartInfo.UseShellExecute = false;
-        //            vlc.StartInfo.FileName = "bash";
-        //vlc.StartInfo.WorkingDirectory = "D:\\Files\\DroneSwarm";
-        //            vlc.StartInfo.Arguments = "-c '/mnt/d/Files/DroneSwarm/launchVLC.sh '";    
-        // "rtsp://admin:@192.168.1.10/" 
-        //+ "user=admin_password=tlJwpbo6_channel=1_stream=0.sdp " 
-        //+ "--video-filter=scene --scene-ratio=10 --scene-prefix='Test_img' " 
-        //+ "--scene-path='D:\\Files\\DroneSwarm\\Images\\Feed" + feed + "'"; 
-        //            Debug.Log(vlc.StartInfo.Arguments);
-        //            try {
-        //                vlc.Start();
-        //            }
-        //            catch (Exception e) {
-        //                Debug.Log(e.Message);
-        //                Debug.Log(e.InnerException);
-        //            }
-        //        }
-        /* 
-         * Launch matlab if that application is necessary
-         * Also gives matlab the feed number in arg1
-         */
-        //       if (matlab_active) {
-        //           matlab = new System.Diagnostics.Process();
-        //           matlab.StartInfo.UseShellExecute = false;
-        //           matlab.StartInfo.FileName = "matlab";
-        //           matlab.StartInfo.Arguments = "-automation -r arg1=" + feed +
-        //                                        "; run('D:\\Files\\DroneSwarm\\detectX.m')";
-        //           try {
-        //               matlab.Start();
-        //           } catch (Exception e) {
-        //               Debug.Log(e.Message);
-        //           }
-        //      }
+
     }
-    // matlab -automation -r 'run('D:\Files\DroneSwarm\detectX.m')'
+    /*check to see if the frame rate is different from normal
+    try {
+        StreamReader sr = new StreamReader(w_main_path + "/.shared.txt");
+        f_rate =  Convert.ToInt32(sr.ReadLine());
+        sr.Close();
+    }
+    catch (Exception e) {
+        Debug.Log(e.Message);
+    }
+
+     Launch VLC if that application is active
+            if (vlc_active) {
+                vlc = new System.Diagnostics.Process();
+                vlc.StartInfo.UseShellExecute = false;
+                vlc.StartInfo.FileName = "bash";
+    vlc.StartInfo.WorkingDirectory = "D:\\Files\\DroneSwarm";
+                vlc.StartInfo.Arguments = "-c '/mnt/d/Files/DroneSwarm/launchVLC.sh '";    
+     "rtsp://admin:@192.168.1.10/" 
+    + "user=admin_password=tlJwpbo6_channel=1_stream=0.sdp " 
+    + "--video-filter=scene --scene-ratio=10 --scene-prefix='Test_img' " 
+    + "--scene-path='D:\\Files\\DroneSwarm\\Images\\Feed" + feed + "'"; 
+                Debug.Log(vlc.StartInfo.Arguments);
+                try {
+                    vlc.Start();
+                }
+                catch (Exception e) {
+                    Debug.Log(e.Message);
+                    Debug.Log(e.InnerException);
+                }
+            }
+
+     * Launch matlab if that application is necessary
+     * Also gives matlab the feed number in arg1
+
+           if (matlab_active) {
+               matlab = new System.Diagnostics.Process();
+               matlab.StartInfo.UseShellExecute = false;
+               matlab.StartInfo.FileName = "matlab";
+               matlab.StartInfo.Arguments = "-automation -r arg1=" + feed +
+                                           "; run('D:\\Files\\DroneSwarm\\detectX.m')";
+               try {
+                   matlab.Start();
+               } catch (Exception e) {
+                   Debug.Log(e.Message);
+               }
+          }
+}
+// matlab -automation -r 'run('D:\Files\DroneSwarm\detectX.m')'
+*/
+
     /*
      * 
      * Precondition:    Application Must Quit
@@ -130,33 +149,47 @@ public class DroneControl : MonoBehaviour {
      * 
      */
     private void OnApplicationQuit() {
-
+        //only the mainScreen performs cleanup operations
         if (mainScreen) {
             //close matlab
-            if (matlab != null && matlab_active) {
+            if (matlab != null && matlab_active && !target_detector_active) {
                 //probably possible to predict which instance of Matlab to kill
                 //by investigating its start-time
-                foreach (var process in 
+                foreach (var process in
                          System.Diagnostics.Process.GetProcessesByName("matlab")) {
                     process.CloseMainWindow();
                     process.Close();
                 }
                 matlab = null;
             }
-        }
-       //only need to close VLC and delete images if VLC is active
-        if (vlc_active) {
-            //Look For VLC instances and Close them
-            foreach (var process in System.Diagnostics.Process.GetProcessesByName("vlc")) {
-                process.CloseMainWindow();
-                process.Close();
+            if (target_detector_active) {
+                Debug.Log("searching for Target_detector");
+                foreach (var process in
+                         System.Diagnostics.Process.GetProcessesByName("Target_detector")) {
+                    process.CloseMainWindow();
+                    process.Close();
+                    Debug.Log("we found it");
+                }
             }
-            //remove extra files
-            string[] files = Directory.GetFiles(getFeedPath());
-            for (int i = 0; i < files.Length; i++) {
-                if (files[i].Substring(files[i].Length - 4, 4) == ".png"
-                    || files[i].Substring(files[i].Length - 4, 4) == ".swp") {
-                    System.IO.File.Delete(files[i]);
+
+            //only need to close VLC and delete images if VLC is active
+            if (vlc_active) {
+                //Look For VLC instances and Close them
+                foreach (var process in System.Diagnostics.Process.GetProcessesByName("vlc")) {
+                    process.CloseMainWindow();
+                    process.Close();
+                }
+                //remove extra files
+                string path_name = getFeedPath().Substring(0, getFeedPath().Length - 1);
+                for (int i = 1; i <= 4; i++) {
+                    string[] files = Directory.GetFiles(path_name + i);
+                    //look through files and if they are png or swp files, delete them
+                    //probably need to add some sort of delay to prevent Sharing Violations
+                    for (int j = 0; j < files.Length; j++) {
+                        if (files[j].Contains(".png") || files[j].Contains(".swp")) {
+                            System.IO.File.Delete(files[j]);
+                        }
+                    }
                 }
             }
         }
@@ -169,25 +202,32 @@ public class DroneControl : MonoBehaviour {
      * Postcondition:   
      * Notes:           
      * 
-     */
+     /
     void receiveCommand() {
 
     }
-
+    */
+    
+    /*
+     * Precondition:    Feed Must be set in the Unity Editor
+     * Postcondition:   Returns the path to the Feed Folder for this screen
+     * Notes:           
+     */
     string getFeedPath() {
         return w_image_path + "/Feed" + feed;
     }
+
     //this function sends fly commands to QGC
     /*
      * Precondition:    
      * Postcondition:   
      * Notes:  This function is no longer included in the project scope         
      * 
-     */
-    /*void relayCommand() {
+     
+    void relayCommand() {
     
-    } */
-
+    }
+    */
 
     // this function gets the video feeds from QGC
     // This function will make use of Resource Load / Unload, (lol)
@@ -205,6 +245,7 @@ public class DroneControl : MonoBehaviour {
     void receiveVideo() {
         done = false;
         string next_file = getNextImage();
+        //Check to see if VLC has stopped sending commands
         if (next_file == current_file || next_file == "File_not_found") {
             done = true;
             return;
@@ -213,7 +254,7 @@ public class DroneControl : MonoBehaviour {
         image_tex = new Texture2D((int)GetComponent<Transform>().localScale.x,
             (int)GetComponent<Transform>().localScale.z,
             TextureFormat.DXT1, false);
-        Debug.Log("loading a new iamge");
+        //if the image does not load; This is problematic
         if (!image_tex.LoadImage(data)) {
             Debug.Log("mega failure");
         }
@@ -221,6 +262,7 @@ public class DroneControl : MonoBehaviour {
         current_file = next_file;
         done = true;
         removeImages();
+    }
         /*
         if (resume) {
             Debug.Log("had to wait on image " + nextImage);
@@ -231,7 +273,7 @@ public class DroneControl : MonoBehaviour {
                 last = Time.time;
             }
         }
-        //check to see if it is now time to display a new frame
+        check to see if it is now time to display a new frame
         else if (last + refresh < Time.time) {
             if (mainScreen) {
                 uint newFeed = getImageProcess();
@@ -258,7 +300,6 @@ public class DroneControl : MonoBehaviour {
             }
         }
         */
-    }
 
 
     //this function gets the result of the iamge processing from matlab
@@ -272,46 +313,56 @@ public class DroneControl : MonoBehaviour {
      *                  This function returns feed 1 by default
      * 
      */
-    uint getImageProcess() {
+    void getImageProcess() {
         //check to see if Matlab is active
+        //Debug.Log("getting the results");
         if (!matlab_active)
-            return 1;
+            return;
         //attempt to open a stream and read from the file
         try {
             StreamReader sr = new StreamReader(w_main_path + "/.shared.txt");
-            string data = sr.ReadLine();
-            for (int i = 0; i < 4; i++) 
-                order[i] = Convert.ToUInt32(data[i]);
-            sr.Close();   
-        } catch (Exception e) {
+            string data;
+            for (int i = 0; i < 3; i++) {
+                data = sr.ReadLine();
+                confidence[i] = Convert.ToSingle(data);
+            }
+            sr.Close();
+        }
+        catch (Exception e) {
             Debug.Log(e.Message);
         }
-        return order[0];
     }
 
     /*
      * Precondition:    DroneControl must have moved on several images, Feed cannot be mainFeed
      * Postcondition:   Deletes the older images in the Feed Folder controlled by this Screen
-     * Notes:           This function needs to be written           
+     * Notes:           For some reason, this function deletes images in large chunks as opposed 
+     *                  to a few images deleted more frequently           
      * 
      */
     void removeImages() {
-        //only the mainScreen deletes images
-        if (mainScreen) {
-            string[] files = Directory.GetFiles(getFeedPath());
-            //look through all the files in the Feed Folder
-            Debug.Log("looking for files");
-            Debug.Log(files.Length);
-            for (int i = 0; i < files.Length; i++) {
-                //if the file is not the one currently being loaded, delete it
-                if (files[i] != current_file 
-                    && ! files[i].Contains("Test1.jpg")
-                    && ! files[i].Contains(".swp")) {
-                    Debug.Log("found some files");
-                    System.IO.File.Delete(files[i]);
-                }
+        //need to fix this so that images are properly dealth with
+        //right now it deletes images from other feeds almost as soon as they are created
+        //also reluctant to make each individual screen delete its own because
+        //that would make mainScreen testing impossible
+
+        //fix ?? no checks on screen, instead, only checks
+        string name = getFeedPath();
+        string[] files = Directory.GetFiles(name);
+        //look through all the files in the Feed Folder
+        //Debug.Log("looking for files");
+        //Debug.Log(files.Length);
+        for (int j = 0; j < files.Length; j++) {
+            //if the file is not the one currently being loaded, delete it
+            if (files[j] != current_file
+                && !files[j].Contains("Test1.jpg")
+                && !files[j].Contains(".swp")) {
+                Debug.Log("found some files");
+                System.IO.File.Delete(files[j]);
             }
         }
+            
+        
     }
 
     /*
@@ -323,13 +374,14 @@ public class DroneControl : MonoBehaviour {
     string getNextImage() {
         //check to see if vlc is active
         float timeStart = Time.time;
+        //if vlc is inactive, load the test image
         if (!vlc_active)
-            return w_image_path +  "/Test1.jpg";
+            return w_image_path + "/Test1.jpg";
         string output = "";
         DateTime best_time;
         string best_name = "";
-        //DirectoryInfo location = new DirectoryInfo(Application.persistentDataPath);
-        //var File = location.GetFiles().O
+        /*DirectoryInfo location = new DirectoryInfo(Application.persistentDataPath);
+        //var File = location.GetFiles().O */
         string[] files = Directory.GetFiles(getFeedPath());
         if (files.Length == 0)
             return "File_not_found";
@@ -345,8 +397,11 @@ public class DroneControl : MonoBehaviour {
             }
         }
         output = best_name;
-        Debug.Log("nextImage Time" + (Time.time - timeStart));
-        //        ls = new System.Diagnostics.Process();
+        //Debug.Log("nextImage Time" + (Time.time - timeStart));
+
+        return output;
+    }
+        /*        ls = new System.Diagnostics.Process();
         //        ls.StartInfo.UseShellExecute = false;
         //        ls.StartInfo.CreateNoWindow = true;
         //        ls.StartInfo.RedirectStandardOutput = true;
@@ -368,38 +423,72 @@ public class DroneControl : MonoBehaviour {
         //            ls.Dispose();
         //            ls = null;
         //        }
-        return output;
-    }
+        */
 
 
     //display the information received from MATLAB and QGC in a clear way
     /*
-     * Precondition:    
-     * Postcondition:   
+     * Precondition:    This screen must be the main one
+     * Postcondition:   Performs all the necessary and miscellaneous computations associated
+     *                  with displaying the data; i.e. displaying sensor data
      * Notes:           This function has been superceded by displayData, might be used in
      *                  the future
      * 
      */
     void displayData() {
-        //This function needs to keep track of the video feeds obtained by What's his face in a way. Yeah
-        //Needs to keep track of the number of times that certain things
+        if (mainScreen) {
+
+        }
     }
 
     // Update is called once per frame
     /*
      * Precondition:    None
      * Postcondition:   checks for video; Quits the Game if necessary
-     * Notes:           Need to change it so this is not done every single update
+     * Notes:           
      * 
      */
     void Update () {
+        //if Unity has finished loading the previous images
         if (done) {
             receiveVideo();
+            //only get the imageProcessing data if its the mainScreen
+            //should put this in another function when possible
+            if (mainScreen && matlab_active) {
+                getImageProcess();
+                uint index = 0;
+                float max = -1f;
+                //find the biggest confidence and switch the mainScreen
+                for (uint i = 0; i < 3; i++) {
+                    if (confidence[i] > max) {
+                        max = confidence[i];
+                        index = i;
+                    }
+                }
+                feed = index + 1;
+            }
         }
         //Quit the Game if Escape is pressed
         if (Input.GetKeyDown(KeyCode.Escape)) {
             Application.Quit();
         }
-        Debug.Log(current_file);
+        //Debug.Log(current_file);
 	}
 }
+
+/*
+ * Need to create some standardized test
+ * Things that needed to be tested are
+ * Does Unity properly read the options from a file
+ * Does Unity properly kill unneeded processes
+ * Does Unity get rid of unneeded files (Need to put in some sleep command so .swp
+ * files can be deleted)
+ * Does the program respond correctly when the nextImage has not changed or doesn't exist
+ * Can Unity load local images
+ * Can Unity read data presented by Matlab
+ * Are files correctly deleted throughout
+ * are only the newer files correctly deleted
+ * Does Unity recognize keypresses
+ * is the feed changed during runtime?
+ * 
+ */
