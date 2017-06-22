@@ -70,13 +70,12 @@ then
 fi
 if [ $v -eq 1 ] 
 then
-    /mnt/d/Program\ Files/VideoLAN/VLC/vlc.exe rtsp://admin:@192.168.1.11/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp --video-filter=scene --scene-ratio=25 --scene-prefix='Test_img' --scene-height=640 --scene-width=360 --scene-path='D:\\Files\\DroneSwarm\\Images\\Feed1' &
+    /mnt/d/Program\ Files/VideoLAN/VLC/vlc.exe rtsp://admin:@192.168.1.11/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp --video-filter=scene --scene-ratio=50 --scene-prefix='Test_img' --scene-width=640 --scene-height=360 --scene-path='D:\\Files\\DroneSwarm\\Images\\Feed1' &
 fi
 if [ $m -eq 1 ] && [ $t -eq 0 ] 
 then
-    # Using Matlab Runtime, the following line is uncessary
-    /mnt/d/Program\ Files/MATLAB/R2017a/bin/matlab.exe -automation -r "run('D:\\Files\\DroneSwarm\\detectX.m')" &
-    #/mnt/d/Files/DroneSwarm/Target_detector/for_testing/Target_detector.exe
+    # Using Matlab Runtime,
+    /mnt/d/Program\ Files/MATLAB/R2017a/bin/matlab.exe -r "run('D:\\Files\\DroneSwarm\\detectX.m')"
 fi
 if [ $t -eq 1 ]
 then
@@ -84,10 +83,10 @@ then
 fi
 if [ $stream_cnt -eq 2 ] || [ $stream_cnt -eq 3 ]
 then
-   /mnt/d/Program\ Files/VideoLAN/VLC/vlc.exe rtsp://admin:@192.168.1.12/user=admin_password=tlJwpbo6_channel=2_stream=0.sdp --video-filter=scene --scene-ratio=25 --scene-prefix='Test_img' --scene-height=640 --scene-width=360 --scene-path='D:\\Files\\DroneSwarm\\Images\\Feed2' &
+   /mnt/d/Program\ Files/VideoLAN/VLC/vlc.exe rtsp://admin:@192.168.1.12/user=admin_password=tlJwpbo6_channel=2_stream=0.sdp --video-filter=scene --scene-ratio=50 --scene-prefix='Test_img' --scene-width=640 --scene-height=360 --scene-path='D:\\Files\\DroneSwarm\\Images\\Feed2' &
 fi
 if [ $stream_cnt -eq 3 ]
 then
-   /mnt/d/Program\ Files/VideoLAN/VLC/vlc.exe rtsp://admin:@192.168.1.10/user=admin_password=tlJwpbo6_channel=3_stream=0.sdp --video-filter=scene --scene-ratio=25 --scene-prefix='Test_img' --scene-height=640 --scene-width=360 --scene-path='D:\\Files\\DroneSwarm\\Images\\Feed3' &
+   /mnt/d/Program\ Files/VideoLAN/VLC/vlc.exe rtsp://admin:@192.168.1.10/user=admin_password=tlJwpbo6_channel=3_stream=0.sdp --video-filter=scene --scene-ratio=50 --scene-prefix='Test_img' --scene-width=640 --scene-height=360 --scene-path='D:\\Files\\DroneSwarm\\Images\\Feed3' &
 fi
 

@@ -11,27 +11,49 @@
 %this mypath stuff is actually uncessary because Matlab needs to look in
 %all the feeds, not just 1 of them
 clear;
-cd 'D:\Files\DroneSwarm'
-load('D:\Files\DroneSwarm\Docs\rcnn.mat', 'rcnn');
+%cd 'D:\Files\DroneSwarm'
+load('D:\Files\DroneSwarm\Docs\rcnn2.mat', 'rcnn2');
 threshold = .90;
 ratings = [0, 0, 0]; %holds the confidence values for each feed
+sharelocation = 'D:\Files\DroneSwarm\.shared.txt';
+used_files = ["", "", ""];
 while true 
     %look through all three feeds
     for i=1:3
-        filename = 'D:\Files\DroneSwarm\.shared.txt';
+        ratings(i) = 0;
         mypath = [char('D:\Files\DroneSwarm\Images\Feed')  char(string(i))];
-        %choice = ["1", "2", "3"];
         %%% Part 1
         %This part of the program will involve reading from a video file
         d = dir(mypath);
-        [~, dx] = sort([d.datenum]);
-        imgfile = d(dx(1)).name;
-        image = imread([mypath '\' imgfile]);
+        num_files = length(d);
+        max_frame = 0;
+        max_name = '';
+        for j=1:num_files
+            filename = d(j).name;
+            if isequal(filename, '.') || isequal(filename, '..') || isequal(filename, 'Test1.jpg')
+               continue; 
+            else
+               name_length = length(filename);
+               frame_num = str2double(filename(name_length - 8: name_length - 4)); 
+               if frame_num > max_frame
+                  max_frame = frame_num;
+                  max_name = filename;
+               end
+            end
+        end
+        if isequal(max_name, '')
+           used_files(i) = "Test1.jpg";
+           continue; 
+        end
+        used_files(i) = max_name;
+        image = imread([mypath '\' max_name]);
         
         %%% Part 2
         %I have no idea what MiniBatchSize or 128 do
-        [bboxes, score, label] = detect(rcnn, image, 'MiniBatchSize', 128);
+        
+        [bboxes, score, label] = detect(rcnn2, image, 'MiniBatchSize', 128);
         %nothing was found
+
         if (isempty(score))
            ratings(i) = 0;
         %otherwise report the confidence
@@ -39,6 +61,7 @@ while true
            ratings(i) = max(score); 
         end
 
+        
             
     end
         
@@ -46,10 +69,11 @@ while true
     %%% Part 3
     %This part of the program will involve opening a file, writing to it, and
     %closing it, to ensure that Unity can then read the file.
+
     
     file = -1;
     while file == -1
-       file = fopen(filename, 'w');
+       file = fopen(sharelocation, 'w');
     end
     %write the confidences to file
     for i = 1:3
@@ -57,6 +81,7 @@ while true
     end
     fclose(file);
     exceed = 0;
+  
 end
 
 %may need clearvars (variables) in order to free up some memory

@@ -36,29 +36,20 @@ public class DroneControl : MonoBehaviour {
     Texture2D image_tex;
     WWW imageLocation; // the URL/File Location of the next image to be loaded
     public uint feed;
+    public DateTime startTime;
     public bool mainScreen = false; //Is this DroneControl running on the main screen
     string w_image_path = "D:/Files/DroneSwarm/Images";
     string w_main_path = "D:/Files/DroneSwarm";
     string current_file = "";
+    float last = 0f;
     bool done = true; //indicates an image has finished loading, 
     public bool matlab_active = false; //for testing, turns on Matlab componenet
     public bool target_detector_active = false;
     public bool vlc_active = false; //for testing, turns on vlc components
-    //public bool var_f_rate = false; //indicates whether the frame rate is different
     // from the default frame rate
-    //int f_rate = 20;
     float[] confidence; //stores the importance of the video feeds from matlab
     System.Diagnostics.Process ls; //ls process; outdated System.IO is now used instead
-    System.Diagnostics.Process matlab; //matlab process; outdated, app launched from main.sh 
-    System.Diagnostics.Process vlc; //vlc process; outdated, app launched from main.sh
-    /*string nextImage = ""; //contains the name of the next image to be loaded
-    //string bash_path = "/mnt/d/Files/DroneSwarm"; //obsolete; bash doesn't have permissions on standalone applications
-    //string old_bash_path = "/mnt/c/Users/Kameron/AppData/LocalLow/DefaultCompany/Drone\\ Swarm";
-    //bool resume = false; //ndicates an image has started loading, but did not complete
-    //string location = "D:\\Files\\DroneSwarm\\Images\\Feed";
-    //float refresh = .2f; //obsolete; timer indicates a new image should be loaded
     //swap to simply look for the most recent file
-    //float last = 0; //obsolete; UNIX time the last image was loaded onto the screen*/
 
     /*
      * Precondition:    None
@@ -69,7 +60,8 @@ public class DroneControl : MonoBehaviour {
      */
     void Start() {
         confidence = new float[4];
-
+        startTime = DateTime.Now;
+        Debug.Log(startTime);
         // read .shared.txt to find out what mode it was launched in from the 
         // shell
         if (!Application.isEditor) {
@@ -79,6 +71,7 @@ public class DroneControl : MonoBehaviour {
                 vlc_active = data.Contains("v") ? true : false;
                 matlab_active = data.Contains("m") && mainScreen ? true : false;
                 target_detector_active = data.Contains("t") && mainScreen ? true : false;
+                Debug.Log("target dector is " + target_detector_active);
             }
             catch (Exception e) {
                 Debug.Log(e.Message);
@@ -88,55 +81,7 @@ public class DroneControl : MonoBehaviour {
         }
 
     }
-    /*check to see if the frame rate is different from normal
-    try {
-        StreamReader sr = new StreamReader(w_main_path + "/.shared.txt");
-        f_rate =  Convert.ToInt32(sr.ReadLine());
-        sr.Close();
-    }
-    catch (Exception e) {
-        Debug.Log(e.Message);
-    }
 
-     Launch VLC if that application is active
-            if (vlc_active) {
-                vlc = new System.Diagnostics.Process();
-                vlc.StartInfo.UseShellExecute = false;
-                vlc.StartInfo.FileName = "bash";
-    vlc.StartInfo.WorkingDirectory = "D:\\Files\\DroneSwarm";
-                vlc.StartInfo.Arguments = "-c '/mnt/d/Files/DroneSwarm/launchVLC.sh '";    
-     "rtsp://admin:@192.168.1.10/" 
-    + "user=admin_password=tlJwpbo6_channel=1_stream=0.sdp " 
-    + "--video-filter=scene --scene-ratio=10 --scene-prefix='Test_img' " 
-    + "--scene-path='D:\\Files\\DroneSwarm\\Images\\Feed" + feed + "'"; 
-                Debug.Log(vlc.StartInfo.Arguments);
-                try {
-                    vlc.Start();
-                }
-                catch (Exception e) {
-                    Debug.Log(e.Message);
-                    Debug.Log(e.InnerException);
-                }
-            }
-
-     * Launch matlab if that application is necessary
-     * Also gives matlab the feed number in arg1
-
-           if (matlab_active) {
-               matlab = new System.Diagnostics.Process();
-               matlab.StartInfo.UseShellExecute = false;
-               matlab.StartInfo.FileName = "matlab";
-               matlab.StartInfo.Arguments = "-automation -r arg1=" + feed +
-                                           "; run('D:\\Files\\DroneSwarm\\detectX.m')";
-               try {
-                   matlab.Start();
-               } catch (Exception e) {
-                   Debug.Log(e.Message);
-               }
-          }
-}
-// matlab -automation -r 'run('D:\Files\DroneSwarm\detectX.m')'
-*/
 
     /*
      * 
@@ -152,18 +97,28 @@ public class DroneControl : MonoBehaviour {
         //only the mainScreen performs cleanup operations
         if (mainScreen) {
             //close matlab
-            if (matlab != null && matlab_active && !target_detector_active) {
+            if (matlab_active && !target_detector_active) {
                 //probably possible to predict which instance of Matlab to kill
                 //by investigating its start-time
                 foreach (var process in
                          System.Diagnostics.Process.GetProcessesByName("matlab")) {
-                    process.CloseMainWindow();
-                    process.Close();
+                    //indicates that this instance of Matlab started after the 
+                    //program began executing, likely indicates that it was started
+                    //by main.sh
+                    Debug.Log("found some matlab");
+                    if (process.StartTime.Add(new TimeSpan(0, 0, 30)) > startTime) { 
+                        //&& !Application.isEditor) {
+                        Debug.Log("the Matlab is young " + process.StartTime);
+                        process.CloseMainWindow();
+                        process.Close();
+                    }
                 }
-                matlab = null;
             }
             if (target_detector_active) {
                 Debug.Log("searching for Target_detector");
+                //this code for whatever reason, does not work when standalone
+                //resultantly maybe add a kill signal that writes to .shared.txt telling 
+                //Matlab to exit
                 foreach (var process in
                          System.Diagnostics.Process.GetProcessesByName("Target_detector")) {
                     process.CloseMainWindow();
@@ -196,18 +151,6 @@ public class DroneControl : MonoBehaviour {
     }
 
 
-    //The only messages that would come directly from QGC are error messages
-    /*
-     * Precondition:    
-     * Postcondition:   
-     * Notes:           
-     * 
-     /
-    void receiveCommand() {
-
-    }
-    */
-    
     /*
      * Precondition:    Feed Must be set in the Unity Editor
      * Postcondition:   Returns the path to the Feed Folder for this screen
@@ -217,17 +160,6 @@ public class DroneControl : MonoBehaviour {
         return w_image_path + "/Feed" + feed;
     }
 
-    //this function sends fly commands to QGC
-    /*
-     * Precondition:    
-     * Postcondition:   
-     * Notes:  This function is no longer included in the project scope         
-     * 
-     
-    void relayCommand() {
-    
-    }
-    */
 
     // this function gets the video feeds from QGC
     // This function will make use of Resource Load / Unload, (lol)
@@ -263,43 +195,7 @@ public class DroneControl : MonoBehaviour {
         done = true;
         removeImages();
     }
-        /*
-        if (resume) {
-            Debug.Log("had to wait on image " + nextImage);
-            if (imageLocation.isDone) {
-                imageLocation.LoadImageIntoTexture(image_tex);
-                GetComponent<Renderer>().material.mainTexture = image_tex;
-                resume = false;
-                last = Time.time;
-            }
-        }
-        check to see if it is now time to display a new frame
-        else if (last + refresh < Time.time) {
-            if (mainScreen) {
-                uint newFeed = getImageProcess();
-                if (newFeed != feed) {
-                    Debug.Log("Feed has changed");
 
-                }
-                feed = newFeed;
-            }
-            image_tex = new Texture2D((int)GetComponent<Transform>().localScale.x,
-                (int)GetComponent<Transform>().localScale.z,
-                TextureFormat.DXT1, false);
-            imageLocation = new WWW("file:///" + Application.persistentDataPath + "/Feed" + feed 
-                            + "/" + getNextImage());
-            Debug.Log(imageLocation.url);
-            Debug.Log("next is : " + getNextImage());
-            if (imageLocation.isDone) {
-                imageLocation.LoadImageIntoTexture(image_tex);
-                GetComponent<Renderer>().material.mainTexture = image_tex;
-                last = Time.time;
-            }
-            else {
-                resume = true;
-            }
-        }
-        */
 
 
     //this function gets the result of the iamge processing from matlab
@@ -324,9 +220,17 @@ public class DroneControl : MonoBehaviour {
             string data;
             for (int i = 0; i < 3; i++) {
                 data = sr.ReadLine();
+                //add a check in this location to see if it is a number
+                //Char.IsDigit()
+                if (true) {
+
+                }
                 confidence[i] = Convert.ToSingle(data);
             }
             sr.Close();
+        }
+        catch (FormatException) {
+            Debug.Log("Matlab has yet to write to .shared.txt");
         }
         catch (Exception e) {
             Debug.Log(e.Message);
@@ -357,7 +261,7 @@ public class DroneControl : MonoBehaviour {
             if (files[j] != current_file
                 && !files[j].Contains("Test1.jpg")
                 && !files[j].Contains(".swp")) {
-                Debug.Log("found some files");
+                //Debug.Log("found some files");
                 System.IO.File.Delete(files[j]);
             }
         }
@@ -401,29 +305,6 @@ public class DroneControl : MonoBehaviour {
 
         return output;
     }
-        /*        ls = new System.Diagnostics.Process();
-        //        ls.StartInfo.UseShellExecute = false;
-        //        ls.StartInfo.CreateNoWindow = true;
-        //        ls.StartInfo.RedirectStandardOutput = true;
-        //        ls.StartInfo.FileName = "bash";
-        //        ls.StartInfo.Arguments = "-c 'ls -t " + bash_path 
-        //            + "/Feed" + feed 
-        //            + "/'";
-        //        ls.StartInfo.RedirectStandardError = true;
-        //attempt to launch the ls command
-        //        try {
-        //            ls.Start();
-        //get the first line of ls
-        //            output = ls.StandardOutput.ReadLine();
-        //        }
-        //        catch (Exception e) {
-        //            Debug.Log(e.Message);
-        //        }
-        //        finally {
-        //            ls.Dispose();
-        //            ls = null;
-        //        }
-        */
 
 
     //display the information received from MATLAB and QGC in a clear way
@@ -454,7 +335,7 @@ public class DroneControl : MonoBehaviour {
             receiveVideo();
             //only get the imageProcessing data if its the mainScreen
             //should put this in another function when possible
-            if (mainScreen && matlab_active) {
+            if (mainScreen && matlab_active && Time.time > last + 2f) {
                 getImageProcess();
                 uint index = 0;
                 float max = -1f;
@@ -466,6 +347,7 @@ public class DroneControl : MonoBehaviour {
                     }
                 }
                 feed = index + 1;
+                last = Time.time;
             }
         }
         //Quit the Game if Escape is pressed

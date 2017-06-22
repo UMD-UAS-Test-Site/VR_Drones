@@ -32,3 +32,9 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+
+#Matlab Files
+Target_detector
+
+#Images
+Images

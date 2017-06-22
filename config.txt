@@ -1,0 +1,11 @@
+main_directory='/mnt/d/Files/DroneSwarm'
+vlc_location='/mnt/d/Program\ Files/VideoLAN/VLC/vlc.exe'
+IP_address=['192.168.1.11', '192.168.1.12', '192.168.1.10']
+user=['admin', 'admin', 'admin']
+password=['tlJwpbo6', 'tlJwpbo6', 'tlJwpbo6']
+matlab_active=1
+vlc_active=1
+feeds=1
+standalone=1
+clear=1
+build='TestBuild.exe'
