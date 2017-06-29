@@ -12,16 +12,18 @@
 %all the feeds, not just 1 of them
 clear;
 %cd 'D:\Files\DroneSwarm'
-load('D:\Files\DroneSwarm\Docs\rcnn2.mat', 'rcnn2');
+main_path = 'D:\Files\DroneSwarm';
+
+load([main_path '\Docs\rcnn2.mat'], 'rcnn2');
 threshold = .90;
 ratings = [0, 0, 0]; %holds the confidence values for each feed
-sharelocation = 'D:\Files\DroneSwarm\.shared.txt';
+sharelocation = [main_path '\.shared.txt'];
 used_files = ["", "", ""];
 while true 
     %look through all three feeds
     for i=1:3
         ratings(i) = 0;
-        mypath = [char('D:\Files\DroneSwarm\Images\Feed')  char(string(i))];
+        mypath = [main_path char('\Images\Feed')  char(string(i))];
         %%% Part 1
         %This part of the program will involve reading from a video file
         d = dir(mypath);

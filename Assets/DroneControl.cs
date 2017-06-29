@@ -36,7 +36,7 @@ public class DroneControl : MonoBehaviour {
     Texture2D image_tex;
     WWW imageLocation; // the URL/File Location of the next image to be loaded
     public uint feed;
-    public DateTime startTime;
+    DateTime startTime;
     public bool mainScreen = false; //Is this DroneControl running on the main screen
     string w_image_path = "D:/Files/DroneSwarm/Images";
     string w_main_path = "D:/Files/DroneSwarm";
@@ -61,23 +61,67 @@ public class DroneControl : MonoBehaviour {
     void Start() {
         confidence = new float[4];
         startTime = DateTime.Now;
-        Debug.Log(startTime);
         // read .shared.txt to find out what mode it was launched in from the 
         // shell
+        string data = "";
+        //Currently commented out as the config file is not yet ready
+        // the shell will generate a config file for every single run of main
+        // unity will always read from this config file
+        // need to implement some parsing so that # are ignored
         if (!Application.isEditor) {
-            try {
-                StreamReader sr = new StreamReader(w_main_path + "/.shared.txt");
-                string data = sr.ReadLine();
-                vlc_active = data.Contains("v") ? true : false;
-                matlab_active = data.Contains("m") && mainScreen ? true : false;
-                target_detector_active = data.Contains("t") && mainScreen ? true : false;
-                Debug.Log("target dector is " + target_detector_active);
-            }
-            catch (Exception e) {
-                Debug.Log(e.Message);
-                Debug.Log("coulnd not read settings from .shared.txt");
-            }
+            return;
+        }
+        try {
+            StreamReader sr = new StreamReader(w_main_path + "/.config");
+            while (!sr.EndOfStream) {
+                data = sr.ReadLine();
+                if (data.Substring(0, 1) == "#") {
+                    continue;
+                }
+                else if (data.Contains("vlc")) {
+                    if (data.Contains("mode")) {
+                        if (data.Contains("on"))
+                            vlc_active = true;
+                        else
+                            vlc_active = false;
+                    }
 
+                }
+                //find out whether or not matlab is on
+                else if (data.Contains("matlab")) {
+                    if (data.Contains("mode")) {
+                        //matlab-mode=
+                        if (data.Contains("on")) {
+                            matlab_active = true;
+                            target_detector_active = false;
+                        }
+                        else if (data.Contains("compiled")) {
+                            matlab_active = target_detector_active = true;
+                        }
+                        //if the command cannot be read, assume false
+                        else {
+                            matlab_active = target_detector_active = false;
+                        }
+
+                    }
+                }
+                //Get the number of feeds
+                //Make it easier to scale as opposed to assuming 1-3 feeds
+                else if (data.Contains("camera-feeds=")) {
+                    feed = Convert.ToUInt32(data.Substring(13, data.Length - 13));
+                }
+                //Get the main location of the directories
+                //probably not necessary
+                //this would also needs to be converted to windows
+                else if (data.Contains("windows-location=")) {
+                    w_main_path = data.Substring(18, data.Length - 19);
+                    w_image_path = w_main_path + "/Images";
+                    Debug.Log(w_main_path);
+                }
+            }
+        }
+        catch (Exception e) {
+            Debug.Log(e.Message);
         }
 
     }
@@ -230,7 +274,7 @@ public class DroneControl : MonoBehaviour {
             sr.Close();
         }
         catch (FormatException) {
-            Debug.Log("Matlab has yet to write to .shared.txt");
+            //Debug.Log("Matlab has yet to write to .shared.txt");
         }
         catch (Exception e) {
             Debug.Log(e.Message);
@@ -322,6 +366,14 @@ public class DroneControl : MonoBehaviour {
         }
     }
 
+    string convertUNIXpath(string unixPath) {
+        string output = "";
+        output = unixPath.Substring(1, 1).ToUpper() 
+                 + ":" + unixPath.Substring(2, unixPath.Length - 2);
+        Debug.Log(output);
+        return output;
+    }
+
     // Update is called once per frame
     /*
      * Precondition:    None
@@ -373,4 +425,14 @@ public class DroneControl : MonoBehaviour {
  * Does Unity recognize keypresses
  * is the feed changed during runtime?
  * 
+ * 
+ * 
+ * At some point I should make a program to verify that the configuration file is valid
+ * Also should error proof my code, so that certain errors don't occur while other
+ * errors cause the program to crash in a predefined way and don't keep the program
+ * running pointlessly
+ * Also need to figure out how to kill matlab
+ * Need to convert main.sh to Windows powershell or cmd
+ * 
  */
+  
