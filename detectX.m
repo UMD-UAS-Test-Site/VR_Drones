@@ -12,8 +12,12 @@
 %all the feeds, not just 1 of them
 clear;
 %cd 'D:\Files\DroneSwarm'
-main_path = 'D:\Files\DroneSwarm';
-
+%main_path = 'D:\Files\DroneSwarm';
+%if isdeployed
+C = textread('C:\Users\Public\.config', '%s', 'delimiter', '\n');
+len = length(C{1});
+main_path = C{1}(18:len);
+%end
 load([main_path '\Docs\rcnn2.mat'], 'rcnn2');
 threshold = .90;
 ratings = [0, 0, 0]; %holds the confidence values for each feed
@@ -22,6 +26,14 @@ used_files = ["", "", ""];
 while true 
     %look through all three feeds
     for i=1:3
+        D = textread([main_path '\.kill.txt'], '%s', 'delimiter', '\n');
+        if ~isempty(D) && isdeployed
+           exit
+        end
+        if ~isempty(D) && ~ isdeployed
+           return
+        end
+        
         ratings(i) = 0;
         mypath = [main_path char('\Images\Feed')  char(string(i))];
         %%% Part 1

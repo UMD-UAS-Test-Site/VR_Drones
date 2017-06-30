@@ -167,11 +167,31 @@ done
 content=$content"\b]\n"
 content=$content"camera-feeds="$camera_feeds
 echo -e $content >> .config
-
+cp .config /c/Users/Public/.config
 #exit
 
+#begin configuration for new files if necessary
+if [ ! -d "Images" ]
+then
+   mkdir "Images"
+fi
+
+if [ ! -e ".kill.txt" ]
+then
+   touch "kill.txt"
+fi
+> ".kill.txt"
+for ((i=0; i<$camera_feeds; i++))
+do
+   if [ ! -d "Images/Feed$(($i + 1))" ]
+   then
+      mkdir "Images/Feed$(($i + 1))"
+      cp "Test1.jpg" "Images/Feed$(($i + 1))/Test1.jpg"
+   fi
+done
+
 #empty out .shared.txt and write to it
-#> .shared.txt
+> .shared.txt
 #unity will use this file to set its own arguments
 #Matlab will most likely no longer be using it
 if [ "$unity_mode" = "on" ]

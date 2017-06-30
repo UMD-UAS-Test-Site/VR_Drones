@@ -114,9 +114,9 @@ public class DroneControl : MonoBehaviour {
                 //probably not necessary
                 //this would also needs to be converted to windows
                 else if (data.Contains("windows-location=")) {
-                    w_main_path = data.Substring(18, data.Length - 19);
+                    w_main_path = data.Substring(17, data.Length - 17);
                     w_image_path = w_main_path + "/Images";
-                    Debug.Log(w_main_path);
+                    //Debug.Log(w_main_path);
                 }
             }
         }
@@ -160,14 +160,20 @@ public class DroneControl : MonoBehaviour {
             }
             if (target_detector_active) {
                 Debug.Log("searching for Target_detector");
-                //this code for whatever reason, does not work when standalone
-                //resultantly maybe add a kill signal that writes to .shared.txt telling 
-                //Matlab to exit
-                foreach (var process in
-                         System.Diagnostics.Process.GetProcessesByName("Target_detector")) {
-                    process.CloseMainWindow();
-                    process.Close();
-                    Debug.Log("we found it");
+                bool done = false;
+                DateTime quit_time = DateTime.Now;
+                while (!done && DateTime.Now < quit_time.Add(new TimeSpan(0, 0, 10))) {
+                    try {
+                        System.IO.StreamWriter file =
+                            new System.IO.StreamWriter(w_main_path + "/.kill.txt");
+                        file.Write("Execution has finished");
+                        file.Close();
+                        done = true;
+                    }
+                    catch (Exception e) {
+                        Debug.Log(e.Message);
+                        Debug.Log("could not open kill file");
+                    }
                 }
             }
 

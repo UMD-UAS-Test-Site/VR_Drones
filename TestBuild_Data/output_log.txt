@@ -2,10 +2,10 @@ Mono path[0] = 'D:/Files/DroneSwarm/TestBuild_Data/Managed'
 Mono path[1] = 'D:/Files/DroneSwarm/TestBuild_Data/Mono'
 Mono config path = 'D:/Files/DroneSwarm/TestBuild_Data/Mono/etc'
 PlayerConnection initialized from D:/Files/DroneSwarm/TestBuild_Data (debug = 0)
-PlayerConnection initialized network socket : 0.0.0.0 55410
-Multi-casting "[IP] 192.168.1.8 [Port] 55410 [Flags] 2 [Guid] 1488233373 [EditorId] 815320446 [Version] 1048832 [Id] WindowsPlayer(Integrator) [Debug] 0" to [225.0.0.222:54997]...
-Started listening to [0.0.0.0:55410]
-PlayerConnection already initialized - listening to [0.0.0.0:55410]
+PlayerConnection initialized network socket : 0.0.0.0 55143
+Multi-casting "[IP] 129.2.11.152 [Port] 55143 [Flags] 2 [Guid] 4007325143 [EditorId] 2787392934 [Version] 1048832 [Id] WindowsPlayer(Integrator) [Debug] 0" to [225.0.0.222:54997]...
+Started listening to [0.0.0.0:55143]
+PlayerConnection already initialized - listening to [0.0.0.0:55143]
 Initialize engine version: 5.5.1f1 (88d00a7498cd)
 GfxDevice: creating device client; threaded=1
 Direct3D:
@@ -27,14 +27,15 @@ Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.Playmo
 Loading D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll into Unity Child Domain
 Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.VR.dll (this message is harmless)
 Loading D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.VR.dll into Unity Child Domain
-- Completed reload, in  1.637 seconds
+- Completed reload, in  0.125 seconds
 Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\System.Core.dll (this message is harmless)
 Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\System.dll (this message is harmless)
 <RI> Initializing input.
 <RI> Input initialized.
 desktop: 2880x1620 59Hz; virtual: 2880x1620 at 0,0
 <RI> Initialized touch support.
-Compositor failed to initialize.Compositor failed to initialize.UnloadTime: 5.567833 ms
+Compositor failed to initialize.Compositor failed to initialize.UnloadTime: 4.609206 ms
 Setting up 2 worker threads for Enlighten.
-  Thread -> id: 3a58 -> priority: 1 
-  Thread -> id: 4560 -> priority: 1 
+  Thread -> id: 18f0 -> priority: 1 
+  Thread -> id: bc8 -> priority: 1 
+searching for Target_detector

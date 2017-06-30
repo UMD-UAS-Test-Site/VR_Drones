@@ -34,7 +34,7 @@ sysinfo.txt
 *.unitypackage
 
 #Matlab Files
-Target_detector
+#Target_detector
 
 #Images
 Images
