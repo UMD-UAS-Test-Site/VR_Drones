@@ -38,8 +38,8 @@ public class DroneControl : MonoBehaviour {
     public uint feed;
     DateTime startTime;
     public bool mainScreen = false; //Is this DroneControl running on the main screen
-    string w_image_path = "D:/Files/DroneSwarm/Images";
-    string w_main_path = "D:/Files/DroneSwarm";
+    string w_image_path = "";
+    string w_main_path = "";
     string current_file = "";
     float last = 0f;
     bool done = true; //indicates an image has finished loading, 
@@ -56,6 +56,9 @@ public class DroneControl : MonoBehaviour {
      * Postcondition:   Sets up all the needed File Systems to Obtain images, 
      *                  Starts Matlab and VLC if they are active
      * Notes:           Should probably put paths and whatnot into global strings
+     *                  Eventually need to have only the mainScreen have a Startup
+     *                  It then creates an appropiate amount of subsidiary screens
+     *                  based on the feed number
      * 
      */
     void Start() {
@@ -68,9 +71,6 @@ public class DroneControl : MonoBehaviour {
         // the shell will generate a config file for every single run of main
         // unity will always read from this config file
         // need to implement some parsing so that # are ignored
-        if (!Application.isEditor) {
-            return;
-        }
         try {
             StreamReader sr = new StreamReader("C:/Users/Public/.config");
             while (!sr.EndOfStream) {
@@ -116,7 +116,16 @@ public class DroneControl : MonoBehaviour {
                 else if (data.Contains("windows-location=")) {
                     w_main_path = data.Substring(17, data.Length - 17);
                     w_image_path = w_main_path + "/Images";
-                    //Debug.Log(w_main_path);
+                    Debug.Log(w_main_path);
+                    Debug.Log(w_image_path);
+                    Debug.Log(data);
+                }
+                else if (data.Contains("camera-feeds=")) {
+                    int count = Convert.ToInt32(data.Substring(13, data.Length - 13));
+                    //this game object needs to disable it self
+                    if (feed > count) {
+                        
+                    }
                 }
             }
         }
@@ -440,5 +449,7 @@ public class DroneControl : MonoBehaviour {
  * Also need to figure out how to kill matlab
  * Need to convert main.sh to Windows powershell or cmd
  * 
+ * 
+ * First time sleep should be longer to allow User time to accept firewall features and such
  */
-  
+    

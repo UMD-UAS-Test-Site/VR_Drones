@@ -212,13 +212,13 @@ then
    for ((i=0; i<$camera_feeds; i++))
    do
    #/d/Program\ Files/VideoLAN/VLC/vlc.exe &
-   "$vlc_location" rtsp://admin:@${camera_ip[$i]}/user=${camera_user[$i]}_password=${camera_password[$i]}_channel=2_stream=0.sdp --video-filter=scene --scene-ratio=50 --scene-prefix='Test_img' --scene-width=640 --scene-height=360 --scene-path=$windows_location"\\Images\\Feed"$(($i + 1)) &
+   "$vlc_location" rtsp://admin:@${camera_ip[$i]}/user=${camera_user[$i]}_password=${camera_password[$i]}_channel=2_stream=0.sdp --video-filter=scene --scene-ratio=50 --scene-prefix='Test_img' --scene-width=640 --scene-height=360 --scene-path=$windows_location"/Images/Feed"$(($i + 1)) &
    done
 fi
 if [ "$matlab_mode" = "on" ] 
 then
     # Using Matlab Runtime,
-    $matlab_location -r "run('D:\\Files\\DroneSwarm\\detectX.m')"
+    $matlab_location -r "run('D:/Files/DroneSwarm/detectX.m')"
 fi
 if [ "$matlab_mode" = "compiled" ]
 then
