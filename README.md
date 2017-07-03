@@ -35,6 +35,9 @@ sleep-mode should be set to on
 rcnn should be set to rcnn2
 build should be set to TestBuild.exe
 
+In order to use VLC to read from an IP camera you'll need to modify your ethernet
+settings
+
 
 
 For Developers:		

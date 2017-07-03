@@ -34,7 +34,6 @@ using UnityEngine;
 public class DroneControl : MonoBehaviour {
 
     Texture2D image_tex;
-    WWW imageLocation; // the URL/File Location of the next image to be loaded
     public uint feed;
     DateTime startTime;
     public bool mainScreen = false; //Is this DroneControl running on the main screen
