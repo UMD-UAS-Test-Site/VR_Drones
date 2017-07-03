@@ -38,3 +38,7 @@ sysinfo.txt
 
 #Images
 Images
+
+#Configuration file
+.config
+config.txt

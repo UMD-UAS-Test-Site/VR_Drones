@@ -72,7 +72,7 @@ public class DroneControl : MonoBehaviour {
             return;
         }
         try {
-            StreamReader sr = new StreamReader(w_main_path + "/.config");
+            StreamReader sr = new StreamReader("C:/Users/Public/.config");
             while (!sr.EndOfStream) {
                 data = sr.ReadLine();
                 if (data.Substring(0, 1) == "#") {
