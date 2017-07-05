@@ -1,0 +1,65 @@
+Mono path[0] = 'D:/Files/DroneSwarm/TestBuild_Data/Managed'
+Mono path[1] = 'D:/Files/DroneSwarm/TestBuild_Data/Mono'
+Mono config path = 'D:/Files/DroneSwarm/TestBuild_Data/Mono/etc'
+PlayerConnection initialized from D:/Files/DroneSwarm/TestBuild_Data (debug = 0)
+PlayerConnection initialized network socket : 0.0.0.0 55157
+Multi-casting "[IP] 192.168.1.116 [Port] 55157 [Flags] 2 [Guid] 337029164 [EditorId] 1296718047 [Version] 1048832 [Id] WindowsPlayer(Integrator) [Debug] 0" to [225.0.0.222:54997]...
+Started listening to [0.0.0.0:55157]
+PlayerConnection already initialized - listening to [0.0.0.0:55157]
+Initialize engine version: 5.5.1f1 (88d00a7498cd)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: NVIDIA GeForce GTX 870M (ID=0x1199)
+    Vendor:   NVIDIA
+    VRAM:     3040 MB
+    Driver:   22.21.13.8205
+Begin MonoManager ReloadAssembly
+Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading D:\Files\DroneSwarm\TestBuild_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
+Loading D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
+Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll (this message is harmless)
+Loading D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll into Unity Child Domain
+- Completed reload, in  0.028 seconds
+Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\System.Core.dll (this message is harmless)
+Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\System.dll (this message is harmless)
+<RI> Initializing input.
+<RI> Input initialized.
+desktop: 2880x1620 59Hz; virtual: 2880x1620 at 0,0
+<RI> Initialized touch support.
+UnloadTime: 1.228354 ms
+D:/Files/DroneSwarm
+D:/Files/DroneSwarm/Images
+windows-location=D:/Files/DroneSwarm
+D:/Files/DroneSwarm
+D:/Files/DroneSwarm/Images
+windows-location=D:/Files/DroneSwarm
+D:/Files/DroneSwarm
+D:/Files/DroneSwarm/Images
+windows-location=D:/Files/DroneSwarm
+Time to load image 23
+Removed Time 0
+Time to load image 19
+Removed Time 0
+Time to load image 19
+Removed Time 0
+Setting up 2 worker threads for Enlighten.
+  Thread -> id: 2078 -> priority: 1 
+  Thread -> id: 2684 -> priority: 1 
+ONENOTE.EXE
+OneDrive
+BingSvc
+netsession_win
+netsession_win
+hpwuschd2
+vpnui
+ONENOTEM.EXE
+devenv
+vshub
+Microsoft.VsHub.Server.HttpHost
+TestBuild

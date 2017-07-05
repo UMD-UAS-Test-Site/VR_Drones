@@ -4,7 +4,7 @@
 
 #/d/Program\ Files/VideoLAN/VLC/vlc.exe
 set -e
-c=0
+clean="off"
 
 build="TestBuild.exe"
 
@@ -113,6 +113,15 @@ parse_arguments () {
 	 camera_feeds=0
       fi
    fi
+   if [[ $@ =~ "--camera-ratio" ]]
+   then
+      camera_ratio=$(sed -n -e 's/.*--camera-ratio=\([0-9]*\).*/\1/p' <<< $@)
+      if [ "$camera_ratio" = "" ]
+      then
+         echo "Camera ratio not properly set"
+	 camera_ratio=20
+      fi
+   fi
    if [[ $@ =~ "--windows-location" ]]
    then
       windows_location=$(sed -n -e 's/.*--windows-location=\(.*\).*/\1/p' <<< $@)
@@ -130,6 +139,10 @@ parse_arguments () {
          echo "Main location not properly set"
 	 exit
       fi
+   fi
+   if [[ $@ =~ "--clean" ]]
+   then
+      clean="on"
    fi
 }
 
@@ -165,9 +178,11 @@ do
    content=$content${camera_ip[$i]}" "
 done
 content=$content"\b]\n"
-content=$content"camera-feeds="$camera_feeds
+content=$content"camera-feeds="$camera_feeds"\n"
+content=$content"camera-ratio="$camera_ratio
 echo -e $content >> .config
 cp .config /c/Users/Public/.config
+
 #exit
 
 #begin configuration for new files if necessary
@@ -202,17 +217,17 @@ if [ "$Sleep_mode" = "on" ]
 then
    sleep 2
 fi
-if [ $c -eq 1 ] 
+if [ "$clean" = "on" ] 
 then
-    echo "Deleting previous image files"
-    rm /mnt/d/Files/DroneSwarm/Images/Feed*/*.png
+   rm $main_location/Images/Feed*/*.png
+   rm $main_location/Images/Feed*/*.png.swp
 fi
 if [ "$vlc_mode" = "on" ] 
 then
    for ((i=0; i<$camera_feeds; i++))
    do
    #/d/Program\ Files/VideoLAN/VLC/vlc.exe &
-   "$vlc_location" rtsp://admin:@${camera_ip[$i]}/user=${camera_user[$i]}_password=${camera_password[$i]}_channel=2_stream=0.sdp --video-filter=scene --scene-ratio=50 --scene-prefix='Test_img' --scene-width=640 --scene-height=360 --scene-path=$windows_location"/Images/Feed"$(($i + 1)) &
+   "$vlc_location" rtsp://admin:@${camera_ip[$i]}/user=${camera_user[$i]}_password=${camera_password[$i]}_channel=2_stream=0.sdp --video-filter=scene --scene-ratio=$camera_ratio --scene-prefix='Test_img' --scene-width=640 --scene-height=360 --scene-path=$windows_location"/Images/Feed"$(($i + 1)) &
    done
 fi
 if [ "$matlab_mode" = "on" ] 

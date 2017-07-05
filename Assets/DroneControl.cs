@@ -36,6 +36,7 @@ public class DroneControl : MonoBehaviour {
     Texture2D image_tex;
     public uint feed;
     DateTime startTime;
+    uint total_feeds = 0;
     public bool mainScreen = false; //Is this DroneControl running on the main screen
     string w_image_path = "";
     string w_main_path = "";
@@ -61,6 +62,7 @@ public class DroneControl : MonoBehaviour {
      * 
      */
     void Start() {
+        
         confidence = new float[4];
         startTime = DateTime.Now;
         // read .shared.txt to find out what mode it was launched in from the 
@@ -107,7 +109,7 @@ public class DroneControl : MonoBehaviour {
                 //Get the number of feeds
                 //Make it easier to scale as opposed to assuming 1-3 feeds
                 else if (data.Contains("camera-feeds=")) {
-                    feed = Convert.ToUInt32(data.Substring(13, data.Length - 13));
+                    total_feeds = Convert.ToUInt32(data.Substring(13, data.Length - 13));
                 }
                 //Get the main location of the directories
                 //probably not necessary
@@ -118,13 +120,6 @@ public class DroneControl : MonoBehaviour {
                     Debug.Log(w_main_path);
                     Debug.Log(w_image_path);
                     Debug.Log(data);
-                }
-                else if (data.Contains("camera-feeds=")) {
-                    int count = Convert.ToInt32(data.Substring(13, data.Length - 13));
-                    //this game object needs to disable it self
-                    if (feed > count) {
-                        
-                    }
                 }
             }
         }
@@ -188,6 +183,15 @@ public class DroneControl : MonoBehaviour {
             //only need to close VLC and delete images if VLC is active
             if (vlc_active) {
                 //Look For VLC instances and Close them
+                foreach (var process in System.Diagnostics.Process.GetProcesses()) {
+                    try {
+                        Debug.Log(process.ProcessName);
+                    }
+                    catch {
+
+                    }
+                }
+
                 foreach (var process in System.Diagnostics.Process.GetProcessesByName("vlc")) {
                     process.CloseMainWindow();
                     process.Close();
@@ -240,6 +244,8 @@ public class DroneControl : MonoBehaviour {
             done = true;
             return;
         }
+        System.Diagnostics.Stopwatch t = new System.Diagnostics.Stopwatch();
+        t.Start();
         byte[] data = System.IO.File.ReadAllBytes(next_file);
         image_tex = new Texture2D((int)GetComponent<Transform>().localScale.x,
             (int)GetComponent<Transform>().localScale.z,
@@ -250,8 +256,11 @@ public class DroneControl : MonoBehaviour {
         }
         GetComponent<Renderer>().material.mainTexture = image_tex;
         current_file = next_file;
+        Debug.Log("Time to load image " + t.ElapsedMilliseconds);
+        t = new System.Diagnostics.Stopwatch();
         done = true;
         removeImages();
+        Debug.Log("Removed Time " + t.ElapsedMilliseconds);
     }
 
 
@@ -292,6 +301,18 @@ public class DroneControl : MonoBehaviour {
         }
         catch (Exception e) {
             Debug.Log(e.Message);
+        }
+    }
+
+    void handleInput() {
+        string[] sticks = UnityEngine.Input.GetJoystickNames();
+        //
+        if (sticks.Length == 0) {
+            Debug.Log("Nothing detected");
+        }
+        //Process each Joystick step by step
+        for (int i = 0; i < sticks.Length; i++) {
+
         }
     }
 
