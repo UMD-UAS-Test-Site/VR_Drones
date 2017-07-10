@@ -1,0 +1,4 @@
+     UID     PID    PPID  TTY        STIME COMMAND
+ Kameron    6796       1 ?        09:30:33 /usr/bin/mintty
+ Kameron    8704    6796 pty0     09:30:33 /usr/bin/bash
+ Kameron   15300    8704 pty0     11:11:12 /usr/bin/ps

@@ -1,13 +1,13 @@
 # VR_Drones
 VR Application made with Unity to aggregate video data from a swarm of drones
 
-For Users:
-This application requires a installation of VLC Media Player and MCR 9.2
+## For Users:
+This application requires an installation of VLC Media Player and MCR 9.2
 It is intended for use on a Windows computer although with a version of Matlab
 Compiler, it should be runable on UNIX systems
 It can be run from the git bash shell
-In order to run this application please edit the config.txt to include all the requried
-fields
+In order to run this application please edit the config.txt to include 
+all the requried fields
 windows-location is the Windows path to the main directory of the application
 Please specify paths as C:/path/to/location
 main-location is the bash path to the same directory
@@ -35,9 +35,18 @@ sleep-mode should be set to on
 rcnn should be set to rcnn2
 build should be set to TestBuild.exe
 
-In order to use VLC to read from an IP camera you'll need to modify your ethernet
-settings
+In order to use VLC to read from an IP camera you'll need to modify your 
+ethernet settings
+Follow the Following Steps
+Control Panel -> Network and Internet -> Network and Sharing Center
+on the Left Panel Click on Change Adapter Settings
+Right Click the Ethernet Port in you are using and select Properties
+Select Internet Protocol Version 4 (TCP/IPv4) and select Properties
+Select Use the following IP Address and pick 192.168.1.XXX
+Replace the XXX with an unused IP address on your network
+
+The first time you launch main.sh you will have to give Unity permissions to
+access your local network
 
 
-
-For Developers:		
+## For Developers:		

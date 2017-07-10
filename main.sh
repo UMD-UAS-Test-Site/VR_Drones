@@ -1,5 +1,13 @@
 #!/bin/bash
-#/mnt/d/Program\ Files/VideoLAN/VLC/vlc.exe rtsp://admin:@192.168.1.10/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp --video-filter=scene --scene-prefix='Test_img' --scene-path='D:\\Files\\DroneSwarm\\Images' &
+
+
+# Author:	Kameron Sheppard
+# Organization:	UMD UAS Test Site
+# Date:		Summer 2017
+#/mnt/d/Program\ Files/VideoLAN/VLC/vlc.exe \
+#rtsp://admin:@192.168.1.10/user=admin_password=tlJwpbo6_channel=1_stream=0.sdp\
+#--video-filter=scene --scene-prefix='Test_img' \
+#--scene-path='D:\\Files\\DroneSwarm\\Images' &
 #/mnt/d/Files/DroneSwarm/$1
 
 #/d/Program\ Files/VideoLAN/VLC/vlc.exe
@@ -212,6 +220,7 @@ done
 if [ "$unity_mode" = "on" ]
 then
    ./$build &
+   unity_pid=$!
 fi
 if [ "$Sleep_mode" = "on" ]
 then
@@ -227,7 +236,9 @@ then
    for ((i=0; i<$camera_feeds; i++))
    do
    #/d/Program\ Files/VideoLAN/VLC/vlc.exe &
-   "$vlc_location" rtsp://admin:@${camera_ip[$i]}/user=${camera_user[$i]}_password=${camera_password[$i]}_channel=2_stream=0.sdp --video-filter=scene --scene-ratio=$camera_ratio --scene-prefix='Test_img' --scene-width=640 --scene-height=360 --scene-path=$windows_location"/Images/Feed"$(($i + 1)) &
+   "$vlc_location" \
+   rtsp://admin:@${camera_ip[$i]}/user=${camera_user[$i]}_password=${camera_password[$i]}_channel=2_stream=0.sdp --video-filter=scene --scene-ratio=$camera_ratio --scene-prefix='Test_img' --scene-width=640 --scene-height=360 --scene-path=$windows_location"/Images/Feed"$(($i + 1)) &
+   vlc_pids[i]=$! 
    done
 fi
 if [ "$matlab_mode" = "on" ] 
@@ -239,3 +250,9 @@ if [ "$matlab_mode" = "compiled" ]
 then
    $main_location/Target_detector/for_testing/Target_detector.exe &
 fi
+
+wait $unity_pid
+for ((i=0; i<$camera_feeds; i++))
+do
+kill -9 ${vlc_pids[$i]}
+done

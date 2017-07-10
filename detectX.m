@@ -1,3 +1,8 @@
+%   Author: Kameron Sheppard
+%   Organization: UMD UAS Test Site
+%   Date: Summer 2017
+
+
 %This program must perform the following functions
 % 1. Receive video/images from either Unity or QGC
 % 2. Using NN, rank images by their confidence values
