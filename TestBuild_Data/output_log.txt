@@ -2,10 +2,10 @@ Mono path[0] = 'D:/Files/DroneSwarm/TestBuild_Data/Managed'
 Mono path[1] = 'D:/Files/DroneSwarm/TestBuild_Data/Mono'
 Mono config path = 'D:/Files/DroneSwarm/TestBuild_Data/Mono/etc'
 PlayerConnection initialized from D:/Files/DroneSwarm/TestBuild_Data (debug = 0)
-PlayerConnection initialized network socket : 0.0.0.0 55291
-Multi-casting "[IP] 192.168.1.8 [Port] 55291 [Flags] 2 [Guid] 1720907282 [EditorId] 1159766240 [Version] 1048832 [Id] WindowsPlayer(Integrator) [Debug] 0" to [225.0.0.222:54997]...
-Started listening to [0.0.0.0:55291]
-PlayerConnection already initialized - listening to [0.0.0.0:55291]
+PlayerConnection initialized network socket : 0.0.0.0 55052
+Multi-casting "[IP] 192.168.1.116 [Port] 55052 [Flags] 2 [Guid] 3529261951 [EditorId] 3950743260 [Version] 1048832 [Id] WindowsPlayer(Integrator) [Debug] 0" to [225.0.0.222:54997]...
+Started listening to [0.0.0.0:55052]
+PlayerConnection already initialized - listening to [0.0.0.0:55052]
 Initialize engine version: 5.5.1f1 (88d00a7498cd)
 GfxDevice: creating device client; threaded=1
 Direct3D:
@@ -25,39 +25,15 @@ Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.Networ
 Loading D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
 Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll (this message is harmless)
 Loading D:\Files\DroneSwarm\TestBuild_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll into Unity Child Domain
-- Completed reload, in  0.061 seconds
+- Completed reload, in  0.021 seconds
 Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\System.Core.dll (this message is harmless)
 Platform assembly: D:\Files\DroneSwarm\TestBuild_Data\Managed\System.dll (this message is harmless)
 <RI> Initializing input.
 <RI> Input initialized.
 desktop: 2880x1620 59Hz; virtual: 2880x1620 at 0,0
 <RI> Initialized touch support.
-UnloadTime: 1.459085 ms
-Making 2 screens
+UnloadTime: 1.017335 ms
+Making 4 screens
 Setting up 2 worker threads for Enlighten.
-  Thread -> id: 27f0 -> priority: 1 
-  Thread -> id: 1d40 -> priority: 1 
-Sharing violation on path D:\Files\DroneSwarm\.shared.txt
-Sharing violation on path D:\Files\DroneSwarm\.shared.txt
-we continue to try
-we continue to try
-we continue to try
-we continue to try
-we continue to try
-we continue to try
-we continue to try
-we continue to try
-we continue to try
-we continue to try
-we continue to try
-making smaller 0
-making smaller 0
-making smaller 0
-making smaller 0
-making smaller 0
-making smaller 0
-making smaller 0
-making smaller 0
-making smaller 0
-making smaller 0
-searching for Target_detector
+  Thread -> id: 2e70 -> priority: 1 
+  Thread -> id: 15e0 -> priority: 1 

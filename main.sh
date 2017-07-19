@@ -14,8 +14,6 @@
 set -e
 clean="off"
 
-build="TestBuild.exe"
-
 #recognize the command line arguments
 #v tells main to run VLC
 #m tells main to run Matlab
@@ -52,6 +50,15 @@ parse_arguments () {
 	 unity_mode=off
       fi
    fi
+   if [[ $@ =~ "--unity-build=" ]]
+   then
+      unity_build=$(sed -n -e 's/.*--unity-build=\([^-]*\).*/\1/p' <<< $@)
+      if [ "$unity_build" = "" ]
+      then
+         echo "unity build not properly set"
+	 unity_build="TestBuild.exe"
+      fi
+   fi
    if [[ $@ =~ "--vlc-mode=" ]]
    then
       #get the actual value
@@ -65,7 +72,7 @@ parse_arguments () {
    fi
    if [[ $@ =~ "--vlc-location=" ]]
    then
-      vlc_location=$(sed -n -e 's/.*--vlc-location=\(.*\).*/\1/p' <<< $@)
+      vlc_location=$(sed -n -e 's/.*--vlc-location=\([^-]*\).*/\1/p' <<< $@)
       if [ "$vlc_location" = "" ]
       then
          echo "Invalid VLC Executable location specified"
@@ -83,7 +90,16 @@ parse_arguments () {
    fi
    if [[ $@ =~ "--matlab-location=" ]]
    then
-      matlab_location=$(sed -n -e 's/.*--matlab-location=\(.*\).*/\1/p' <<< $@)
+      matlab_location=$(sed -n -e 's/.*--matlab-location=\([^-]*\).*/\1/p' <<< $@)
+   fi
+   if [[ $@ =~ "--matlab-confidence=" ]]
+   then
+      matlab_confidence=$(sed -n -e 's/.*--matlab-confidence=\([01].?[0-9]*\).*/\1/p')
+      if [ "$matlab_confidence" = "" ]
+      then
+         echo "matlab confidence not properly set"
+	 matlab_confidence=.5
+      fi
    fi
    if [[ $@ =~ "--camera-ip=" ]]
    then
@@ -132,7 +148,7 @@ parse_arguments () {
    fi
    if [[ $@ =~ "--windows-location" ]]
    then
-      windows_location=$(sed -n -e 's/.*--windows-location=\(.*\).*/\1/p' <<< $@)
+      windows_location=$(sed -n -e 's/.*--windows-location=\([^-]*\).*/\1/p' <<< $@)
       if [ "$windows_location" = "" ]
       then
          echo "Windows location not properly set"
@@ -141,7 +157,7 @@ parse_arguments () {
    fi
    if [[ $@ =~ "--main-location" ]]
    then
-      main_location=$(sed -n -e 's/.*--main-location=\(.*\).*/\1/p' <<< $@)
+      main_location=$(sed -n -e 's/.*--main-location=\([^-]*\).*/\1/p' <<< $@)
       if [ "$main_location" = "" ]
       then
          echo "Main location not properly set"
@@ -219,7 +235,7 @@ done
 #Matlab will most likely no longer be using it
 if [ "$unity_mode" = "on" ]
 then
-   ./$build &
+   $unity_build &
    unity_pid=$!
 fi
 if [ "$Sleep_mode" = "on" ]
@@ -243,16 +259,18 @@ then
 fi
 if [ "$matlab_mode" = "on" ] 
 then
-    # Using Matlab Runtime,
-    $matlab_location -r "run('D:/Files/DroneSwarm/detectX.m')"
+    echo Using Matlab Runtime,
+    "$matlab_location" -r "run('D:/Files/DroneSwarm/detectX.m')"
 fi
 if [ "$matlab_mode" = "compiled" ]
 then
    $main_location/Target_detector/for_testing/Target_detector.exe &
 fi
-
-wait $unity_pid
-for ((i=0; i<$camera_feeds; i++))
-do
-kill -9 ${vlc_pids[$i]}
-done
+if [ "$unity_mode" = "on" ]
+then
+   wait $unity_pid
+   for ((i=0; i<$camera_feeds; i++))
+   do
+      kill -9 ${vlc_pids[$i]}
+   done
+fi

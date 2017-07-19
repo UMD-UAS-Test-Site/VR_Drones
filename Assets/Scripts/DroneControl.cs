@@ -45,7 +45,7 @@ public class DroneControl : MonoBehaviour {
     bool initialized = false; //indicates whether or not this screen initialization has finished
     int frame = 0; // the frame count, used to limit access to .shared.txt, giving MATLAB time to write
     public int feed; // the feed used by this screen
-    public float threshold = .7f; //the threshold needed to indicate that a screen is 'Hot'
+    public float threshold = .5f; //the threshold needed to indicate that a screen is 'Hot'
     string w_image_path = "";  //the windows path to the Image Directory
     string w_main_path = ""; //the windows path to the main directory
     string current_file = ""; //the image that is currently loaded onto the screen
@@ -54,9 +54,11 @@ public class DroneControl : MonoBehaviour {
     public bool target_detector_active = false; //for testing, indicates MCR is active
     public bool vlc_active = false; //for testing, Indicates VLC is active
     float confidence; //the confidence ratio for this particular feed
-    bool moved = false;
-    bool enhancing = false;
-    public float screenRadius = 15;
+    bool moved = false; //detects whether the screen is finished spawning in
+    bool enhancing = false; //detected whether the screen is growing
+    public float screenRadius = 15; //the radius of circle around the user; needs to be set
+    //at initialization
+    System.Diagnostics.Stopwatch timer; //used to time how long the marker is no longer detected
 
     /*
      * Precondition:
@@ -64,7 +66,7 @@ public class DroneControl : MonoBehaviour {
      * Notes:           Not much happens here anymore
      */
     void Start() {
-
+        timer = new System.Diagnostics.Stopwatch();
     }
 
 
@@ -76,7 +78,6 @@ public class DroneControl : MonoBehaviour {
      * 
      */
     public void enhanceScreen() {
-        Debug.Log("we continue to try");
         this.transform.localScale = new Vector3(this.transform.localScale.x + .03f,
             this.transform.localScale.y + .03f,
             this.transform.localScale.z + .03f);
@@ -85,7 +86,6 @@ public class DroneControl : MonoBehaviour {
     }
 
     public void dehanceScreen() {
-        Debug.Log("making smaller " + confidence);
         this.transform.localScale = new Vector3(this.transform.localScale.x - .03f,
             this.transform.localScale.y - .03f,
             this.transform.localScale.z - .03f);
@@ -239,7 +239,21 @@ public class DroneControl : MonoBehaviour {
                             Debug.Log("There's no number here");
                         }
                     }*/
-                    confidence = Convert.ToSingle(data);
+                    float tmp_confidence = Convert.ToSingle(data);
+                    //check to see if a false zero has occured
+                    if (tmp_confidence == 0 && !timer.IsRunning) {
+                        Debug.Log("staring up the timer");
+                        timer.Start();
+                    }
+                    else if (timer.IsRunning && timer.ElapsedMilliseconds > 10000) {
+                        Debug.Log("1000 miliseconds have passed");
+                        confidence = tmp_confidence;
+                        timer.Reset();
+                    }
+                    else if (tmp_confidence > 0) {
+                        timer.Reset();
+                        confidence = tmp_confidence;
+                    }
                 }
             }
             sr.Close();
@@ -426,5 +440,38 @@ public class DroneControl : MonoBehaviour {
  * 
  * First time sleep should be longer to allow User time to accept firewall features and such
  * 
+ * VR Polishing
+ * -------------
+ * Screen Spwaning
+ * - When Screens Spawn they should fly in one by one at a much cleaner speed and kinda bounce
+ * - The final locations should change based on how many screens spawn in
+ * - they should all be centered around the user's FOV
+ * 
+ * Screen Interaction
+ * - User should be able to move screens using the Oculus Touch
+ * - Screens should push each other out of the way
+ * - Movement should be fluid
+ * 
+ * Marker Detection
+ * - Screen should Pop bigger like a bubble (use spring physics)
+ * - Screen should move to be front and center into the FOV
+ * 
+ * Background
+ * - Change the Background of the Application to something
+ * - Running Matlab locally can save the application path via command line
+ * 
+ * 
+ * Matlab Polishing
+ * ----------------
+ * 
+ * Initiation
+ * Add file location of configuration file via command line
+ * Read in RCNN from config file
+ * Read in FeedNum from config file
+ * 
+ * Bash Polishing
+ * --------------
+ * Fix Command Line Path Specification
+ * Add Option to set 
  */
     

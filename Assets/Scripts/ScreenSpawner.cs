@@ -18,7 +18,6 @@ public class ScreenSpawner : MonoBehaviour {
     DroneControl[] screens;
     public int curveRadius;
     public int userRadius;
-    public List<Vector3> spawnPositions;
     public Material main;
 
 
@@ -76,8 +75,6 @@ public class ScreenSpawner : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        spawnPositions = new List<Vector3>();
-        spawnPositions.Add(new Vector3(0, 0, 0));
         //create Plane
        
         //rotation is always X 90 and the Y Rotation changes the image moves
