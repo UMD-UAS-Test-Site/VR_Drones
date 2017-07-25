@@ -13,18 +13,10 @@
 #/d/Program\ Files/VideoLAN/VLC/vlc.exe
 set -e
 clean="off"
-
+config="off"
 #recognize the command line arguments
-#v tells main to run VLC
-#m tells main to run Matlab
-#c tells main to remove image files from the Image Feeds directories
-#d indicates that the program is in debug mode, for now no need to trigger
-#t indicates that a Standalone Matlab executable is being used, must be used with m
-#f indicates the number of streams that are being used, must be used with v
-#b indicates that a nondefault build has been specified
 
 #change of plans, Will always use a configuration file, and specified parameters will override the config file
-#config=$(sed -n -e 's/--config-mode=\(\(on\)\|\(off\)\)/\1/p' <<< $@)
 
 parse_arguments () {
 
@@ -92,13 +84,32 @@ parse_arguments () {
    then
       matlab_location=$(sed -n -e 's/.*--matlab-location=\([^-]*\).*/\1/p' <<< $@)
    fi
-   if [[ $@ =~ "--matlab-confidence=" ]]
+   if [[ $@ =~ "--matlab-rcnn=" ]]
    then
-      matlab_confidence=$(sed -n -e 's/.*--matlab-confidence=\([01].?[0-9]*\).*/\1/p')
-      if [ "$matlab_confidence" = "" ]
+      matlab_rcnn=$(sed -n -e 's/.*--matlab-rcnn=\([^-]*\).*/\1/p' <<< $@)
+      if [ "$matlab_rcnn" = "" ]
       then
-         echo "matlab confidence not properly set"
-	 matlab_confidence=.5
+         echo "matlab rcnn not set"
+	 matlab_rcnn=rcnn
+      fi
+   fi
+   if [[ $@ =~ "--unity-threshold=" ]]
+   then
+      unity_threshold=$(sed -n -e 's/.*--unity-threshold=\(0\?\.[0-9]*\).*/\1/p' <<< $@)
+      if [ "$unity_threshold" = "" ]
+      then
+         echo "unity threshold not properly set"
+	 echo "threshold is "$unity_threshold
+	 echo $@
+	 unity_threshold=.5
+      fi
+   fi
+   if [[ $@ =~ "--unity-spawns=" ]]
+   then
+      unity_spawns=$(sed -n -e 's/.*--unity-spawns=\([^-]*\).*/\1/p' <<< $@)
+      if [ "$unity_spawns" = "" ]
+      then
+         echo "unity spawns not properly set"
       fi
    fi
    if [[ $@ =~ "--camera-ip=" ]]
@@ -168,6 +179,10 @@ parse_arguments () {
    then
       clean="on"
    fi
+   if [[ $@ =~ "--config" ]]
+   then
+      config="on"
+   fi
 }
 
 while IFS= read -r line
@@ -179,11 +194,15 @@ parse_arguments "$@"
 
 #Put the part of your code that writes to .config here
 > .config
+
+
 content="windows-location="$windows_location"\n"
 content=$content"main-location="$main_location"\n"
-content=$content"unity-mode="$unity_mode"\n"
+content=$content"unity-mode="$unity_mode"\nunity-threshold"$unity_threshold"\n"
+content=$content"unity-spawns="$unity_spawns"\n"
 content=$content"vlc-location="$vlc_location"\nvlc-mode="$vlc_mode"\n"
 content=$content"matlab-location="$matlab_location"\nmatlab-mode="$matlab_mode"\n"
+content=$content"matlab-rcnn="$matlab_rcnn"\n"
 content=$content"camera-ip=["
 for ((i=0; i<$camera_feeds; i++))
 do
@@ -199,15 +218,17 @@ content=$content"\b]\n"
 content=$content"camera-password=["
 for ((i=0; i<$camera_feeds; i++))
 do
-   content=$content${camera_ip[$i]}" "
+   content=$content${camera_password[$i]}" "
 done
 content=$content"\b]\n"
 content=$content"camera-feeds="$camera_feeds"\n"
 content=$content"camera-ratio="$camera_ratio
 echo -e $content >> .config
 cp .config /c/Users/Public/.config
-
-#exit
+if [ "$config" = "on" ]
+then
+   exit
+fi
 
 #begin configuration for new files if necessary
 if [ ! -d "Images" ]

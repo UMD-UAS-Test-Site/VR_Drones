@@ -54,11 +54,17 @@ public class DroneControl : MonoBehaviour {
     public bool target_detector_active = false; //for testing, indicates MCR is active
     public bool vlc_active = false; //for testing, Indicates VLC is active
     float confidence; //the confidence ratio for this particular feed
-    bool moved = false; //detects whether the screen is finished spawning in
-    bool enhancing = false; //detected whether the screen is growing
-    public float screenRadius = 15; //the radius of circle around the user; needs to be set
-    //at initialization
+    public bool moved = false; //detects whether the screen is finished spawning in
+    public bool enhancing = false; //detected whether the screen is growing
+    public bool dehancing = false; //detects whether the screen is shrinking
+    public float userRadius = 15; //the radius of circle around the user; needs to be set
+    float timeconstant = 3f; //controls dampening rate
+    float ar = .3f / .5333f; //aspect ratio of screen
     System.Diagnostics.Stopwatch timer; //used to time how long the marker is no longer detected
+    public Collider UISphere; //cylinder to which screens are mapped
+    System.Diagnostics.Stopwatch spawnTimer; //timer for when the screen spawns
+    System.Diagnostics.Stopwatch growthTimer; //timer for how long the screen is growing
+
 
     /*
      * Precondition:
@@ -67,29 +73,68 @@ public class DroneControl : MonoBehaviour {
      */
     void Start() {
         timer = new System.Diagnostics.Stopwatch();
+        growthTimer = new System.Diagnostics.Stopwatch();
     }
 
 
     /*
      * Precondition:    This screen's confidence value must have exceeded the
-     *                  threshold
+     *                  threshold or bool enhancing must be true
      * Postcondition:   Makes the Screen Bigger
      * Notes:           
      * 
      */
     public void enhanceScreen() {
-        this.transform.localScale = new Vector3(this.transform.localScale.x + .03f,
-            this.transform.localScale.y + .03f,
-            this.transform.localScale.z + .03f);
-        if (this.transform.localScale.z > .6f)
+        Debug.Log("assigning new transform");
+        //check to see if the timer needs to be started
+        if (!growthTimer.IsRunning)
+            growthTimer.Reset();
+            growthTimer.Start();
+        float size = Mathf.Exp(-timeconstant * growthTimer.ElapsedMilliseconds / 1000f) * .4667f *
+            Mathf.Cos(growthTimer.ElapsedMilliseconds / 100f - Mathf.PI) + .4667f;
+        this.transform.localScale = new Vector3(.5333f + size, 1 + size, .3f + size * ar);
+        //timer controls how long the screen grows
+        if (growthTimer.ElapsedMilliseconds > 3000) {
+            Debug.Log("enhance is over");
             enhancing = false;
+            transform.localScale = new Vector3(1f, 1.5f, .5625f);
+            growthTimer.Stop();
+        }
+
+        Vector3 point = CoV();
+        Debug.Log("work is done");
+        Vector3 position = transform.position;
+        float x = Mathf.Lerp(position.x, point.x, growthTimer.ElapsedMilliseconds / 4000f);
+        float y = Mathf.Lerp(position.y, point.y, growthTimer.ElapsedMilliseconds / 4000f);
+        float z = Mathf.Lerp(position.z, point.z, growthTimer.ElapsedMilliseconds / 4000f);
+        transform.position = new Vector3(x, y, z);
+
     }
 
+    /*
+     * Precondition:    The screen's confidence value must be below the threshold or
+     *                  dehancing must be true
+     * Postcondition:   Shrinks the screen back to its original size
+     * Notes:           
+     */
     public void dehanceScreen() {
-        this.transform.localScale = new Vector3(this.transform.localScale.x - .03f,
-            this.transform.localScale.y - .03f,
-            this.transform.localScale.z - .03f);
-            
+        //check to see if the timer must be started
+        if (!growthTimer.IsRunning) {
+            growthTimer.Reset();
+            growthTimer.Start();
+            Debug.Log("something worked" + growthTimer.ElapsedMilliseconds);
+            dehancing = true;
+        }
+        float size = Mathf.Exp(-timeconstant * growthTimer.ElapsedMilliseconds / 1000f) * .4667f *
+            Mathf.Cos(growthTimer.ElapsedMilliseconds / 100f + Mathf.PI / 2) - .4667f;
+        this.transform.localScale = new Vector3(1 + size, 1 + size, .5625f + size * ar);
+        //timer controls how long the screen shrinks
+        if (growthTimer.ElapsedMilliseconds > 3000) {
+            dehancing = false;
+            growthTimer.Stop();
+            transform.localScale = new Vector3(.5333f, 1, .3f);
+        }
+
 
     }
 
@@ -105,16 +150,18 @@ public class DroneControl : MonoBehaviour {
      *                  parameter, it would not break everyone elses code
      * 
      */
-    public void Initialize(int feedNum, string location, 
-        bool m_active, bool v_active, bool t_active) {
-        feed = feedNum;
-        w_main_path = location;
-        w_image_path = location + "/Images";
-        matlab_active = m_active;
-        vlc_active = v_active;
-        t_active = target_detector_active;
+    public void Initialize(Dictionary<string, string> data) {
+        feed = Convert.ToInt32(data["feed"]);
+        w_main_path = data["location"];
+        w_image_path = w_main_path + "/Images";
+        matlab_active = Convert.ToBoolean(data["matlab_active"]);
+        vlc_active = Convert.ToBoolean(data["vlc_active"]);
+        target_detector_active = Convert.ToBoolean(data["target_detector_active"]);
+        userRadius = Convert.ToSingle(data["user_radius"]);
         setRotation();
         initialized = true;
+        spawnTimer = new System.Diagnostics.Stopwatch();
+        spawnTimer.Start();
 
     }
 
@@ -191,18 +238,22 @@ public class DroneControl : MonoBehaviour {
         this.transform.eulerAngles = new Vector3(90, -radiansToDegrees(Mathf.Atan2(nR.z, nR.x)) - 90, 0);
     }
 
-
+    /*
+     * Precondition:    moved must be false
+     * Postcondition:   Moves the screen to its appropiate location
+     * Notes:           Need to get rid of the timer, it causes faults if there's lag
+     */
     public void moveIn() {
         //for detecting when the screen reaches its destination
 
         float angle = Mathf.Atan2(transform.position.z, transform.position.x);
         //Debug.Log("angle is " + radiansToDegrees(angle));
-        if (radiansToDegrees(angle) > 90 - (feed - 2) * 20) {
+        if (spawnTimer.ElapsedMilliseconds > 3104) {
             moved = true;
         }
-        this.transform.position = new Vector3(Mathf.Cos(angle + Time.deltaTime) * screenRadius,
+        transform.position = new Vector3(Mathf.Cos(angle + Time.deltaTime) * userRadius,
             transform.position.y,
-            Mathf.Sin(angle + Time.deltaTime) * screenRadius);
+            Mathf.Sin(angle + Time.deltaTime) * userRadius);
         setRotation();
         
     }
@@ -311,17 +362,40 @@ public class DroneControl : MonoBehaviour {
 
     /*
      * Precondition:    None
-     * Postcondition:   Maps the Screen back onto the Cylinder
-     * Notes:           Untested
+     * Postcondition:   
+     * Notes:           Does nothing now
      */
     private void OnCollisionStay(Collision collision) {
-        Debug.Log("collision detected");
+        //Debug.Log("collision detected");
+    }
+
+    /*
+     * Precondition:    None
+     * Postcondition:   Removes the Y component from a Vector3
+     * Notes:
+     * 
+     */
+    private Vector3 zeroY(Vector3 input) {
+        return new Vector3(input.x, 0, input.z);
+    }
+
+    /*
+     * Precondition:    None
+     * Postcondition:   Maps the location of a screen back onto the cylinder
+     * Notes:
+     */
+    private void setLocation() {
+        Vector3 zeroedLocation = zeroY(transform.position);
+        float distance = Vector3.Distance(zeroedLocation, new Vector3());
         RaycastHit hit;
-        Physics.Raycast(transform.position + transform.position, 
-            new Vector3(-transform.position.x, 0, -transform.position.z), 
-            out hit);
-        this.transform.position = hit.point;
-        setRotation();
+        Ray ray = new Ray(new Vector3(0, transform.position.y, 0) + (zeroedLocation.normalized * (userRadius + 1)), 
+            -zeroedLocation);
+        if (UISphere.Raycast(ray, out hit, userRadius + 5)) {
+            transform.position = hit.point;
+        }
+        else {
+
+        }
     }
 
     /*
@@ -370,7 +444,23 @@ public class DroneControl : MonoBehaviour {
      * 
      */
     void displayData() {
-        
+
+    }
+
+    /*
+     * Precondition:    None
+     * Postcondition:   Returns a point on the cylinder that the camera is looking at
+     * Notes:
+     */
+    Vector3 CoV() {
+        Vector3 direction = new Vector3(Mathf.Sin(-Camera.main.transform.eulerAngles.y),
+                            Mathf.Sin(-Camera.main.transform.eulerAngles.x),
+                            Mathf.Cos(-Camera.main.transform.eulerAngles.y));
+        Ray ray = new Ray(Camera.main.transform.position + direction * (userRadius + 5), -direction);
+        RaycastHit hit;
+        UISphere.Raycast(ray, out hit, 20);
+        return hit.point;
+
     }
 
     // Update is called once per frame
@@ -382,11 +472,21 @@ public class DroneControl : MonoBehaviour {
      */
     void Update () {
         //continue enlarging screen when necessary
+        setRotation();
+        setLocation();
         if (enhancing) {
+            Debug.Log("attempting enhancement");
             enhanceScreen();
         }
+        if (transform.position.y > 8) {
+            transform.position = new Vector3(transform.position.x, 8, transform.position.z);
+        }
+        else if (transform.position.y < -8) {
+            transform.position = new Vector3(transform.position.x, -8, transform.position.z);
+        }
         //shrink screen when no longer valid
-        if (transform.localScale.z > .35f && confidence < threshold) {
+        if (dehancing || (!enhancing && confidence < threshold &&
+            transform.localScale.z > .4f)) {
             dehanceScreen();
         }
         if (!initialized)
@@ -395,6 +495,13 @@ public class DroneControl : MonoBehaviour {
             if (!moved) {
                 moveIn();
             }
+            else if (!GetComponent<Renderer>().isVisible){
+                //Debug.Log("can't see");
+                //Vector3 cov = CoV();
+                //transform.position = (transform.position - cov).normalized * Time.deltaTime;
+                
+            }
+            Debug.Log("frame incrementing");
             frame++;
             receiveVideo();
             //only get the imageProcessing data if its the mainScreen
@@ -438,26 +545,24 @@ public class DroneControl : MonoBehaviour {
  * Can potentially be done by the shell
  * 
  * 
- * First time sleep should be longer to allow User time to accept firewall features and such
+ * TODO List
  * 
  * VR Polishing
  * -------------
  * Screen Spwaning
  * - When Screens Spawn they should fly in one by one at a much cleaner speed and kinda bounce
- * - The final locations should change based on how many screens spawn in
- * - they should all be centered around the user's FOV
+ * - Add a configuration file option that specifies the spawn locations of the screens
+ * - A timer for the ScreenSpawner is a bad idea because lag
  * 
  * Screen Interaction
  * - User should be able to move screens using the Oculus Touch
- * - Screens should push each other out of the way
  * - Movement should be fluid
+ * - Add clamp to movement so movement below a certain speed is removed
+ * - Screens pulled to center of user's gaze
  * 
  * Marker Detection
- * - Screen should Pop bigger like a bubble (use spring physics)
- * - Screen should move to be front and center into the FOV
  * 
  * Background
- * - Change the Background of the Application to something
  * - Running Matlab locally can save the application path via command line
  * 
  * 
@@ -466,12 +571,15 @@ public class DroneControl : MonoBehaviour {
  * 
  * Initiation
  * Add file location of configuration file via command line
- * Read in RCNN from config file
- * Read in FeedNum from config file
+ * Add real config file reading that doesn't assume the location
  * 
  * Bash Polishing
  * --------------
- * Fix Command Line Path Specification
- * Add Option to set 
+ * Add Location for Test Image
+ * Standardize Test Image
+ * Fix Command Line reading of arrays
+ * Add optional brackets for singular testing
+ * Add  
+ * Add command line option guide
  */
     

@@ -50,3 +50,20 @@ access your local network
 
 
 ## For Developers:		
+This application is consists of 3 different languages
+###Bash:
+Bash is a wrapper script.  In this application, ti launches all of the other
+programs needed for the application to work.  In addition, it also has
+a plethora of command line options that will change how the application
+works
+
+###Unity:
+Unity controls the User Interface of the application.  It is where all the VR
+magic happens.  
+
+###MATLAB:
+MATLAB controls all the image processing of the application.  It reads in
+images taken from VLC and analyses them for markers.  It then writes the
+results of its analysis to a text file.
+
+

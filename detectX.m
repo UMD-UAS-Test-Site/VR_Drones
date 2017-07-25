@@ -22,15 +22,19 @@ clear;
 C = textread('C:\Users\Public\.config', '%s', 'delimiter', '\n');
 len = length(C{1});
 main_path = C{1}(18:len);
+len = length(C{13});
+feeds = str2num(C{13}(14:len));
+len = length(C{9});
+net = C{9}(13:len);
 %end
-load([main_path '\Docs\rcnn2.mat'], 'rcnn2');
-threshold = .90;
+load([main_path '\Docs\' net '.mat'], 'rcnn');
 ratings = [0, 0, 0]; %holds the confidence values for each feed
 sharelocation = [main_path '\.shared.txt'];
 used_files = ["", "", ""];
+
 while true 
     %look through all three feeds
-    for i=1:3
+    for i=1:feeds
         D = textread([main_path '\.kill.txt'], '%s', 'delimiter', '\n');
         if ~isempty(D) && isdeployed
            exit
@@ -70,7 +74,7 @@ while true
         %%% Part 2
         %I have no idea what MiniBatchSize or 128 do
         
-        [bboxes, score, label] = detect(rcnn2, image, 'MiniBatchSize', 128);
+        [bboxes, score, label] = detect(rcnn, image, 'MiniBatchSize', 128);
         %nothing was found
 
         if (isempty(score))

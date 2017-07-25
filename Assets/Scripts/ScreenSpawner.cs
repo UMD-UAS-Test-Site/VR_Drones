@@ -7,18 +7,24 @@ using UnityEngine;
 public class ScreenSpawner : MonoBehaviour {
 
 
-    int total_feeds;
-    bool matlab_active;
-    bool target_detector_active;
-    bool vlc_active;
-    DateTime startTime;
-    string w_main_path;
-    string w_image_path;
-    Mesh theMesh;
-    DroneControl[] screens;
-    public int curveRadius;
-    public int userRadius;
-    public Material main;
+    int total_feeds; //total number of screens to be spawned
+    bool matlab_active;//matlab enabled
+    bool target_detector_active; //matlab compiled mode
+    bool vlc_active;//vlc enabled
+    DateTime startTime; //the time this application was started
+    string w_main_path;//windows path to main directory
+    string w_image_path; //windows path to images
+    DroneControl[] screens; //holds all the screens that have spawned
+    public int curveRadius; //radius of curvature of screens
+    public float userRadius;//raidus of cylinder around user
+    public Material main; //default material for screens
+    public PhysicMaterial physmaterial; //physics material for screens
+    public Collider UISphere; //collider of cylinder around user
+    public Vector3[] oneFeed; //spawn locations for one screen
+    public Vector3[] twoFeeds;
+    public Vector3[] threeFeeds;
+    public Vector3[] fourFeeds; //spawn locations for four screens
+    int current; //current screen being spawnd
 
 
 
@@ -31,17 +37,21 @@ public class ScreenSpawner : MonoBehaviour {
      */
     GameObject createScreen() {
         GameObject screen = GameObject.CreatePrimitive(PrimitiveType.Plane);
-
         screen.transform.localScale = new Vector3(.5333f, 1, .3f);
         screen.transform.position = new Vector3(-10, 0, 0);
         screen.GetComponent<MeshRenderer>().material = main;
         Mesh theMesh = screen.GetComponent<MeshFilter>().mesh;
-        Destroy(screen.GetComponent<MeshCollider>());
+
+        //Destroy(screen.GetComponent<MeshCollider>());
+        screen.GetComponent<MeshCollider>().convex = true;
+        //screen.GetComponent<MeshCollider>().isTrigger = true;
         BoxCollider collider = screen.AddComponent<BoxCollider>();
-        /*Rigidbody body = screen.AddComponent<Rigidbody>();
+        collider.material = physmaterial;
+        Rigidbody body = screen.AddComponent<Rigidbody>();
         //body.isKinematic = true;
-        body.useGravity = false;*/
-        collider.size = new Vector3(10, 1, 10); // All these numbers need to be dynamically set
+        body.useGravity = false;
+        body.drag = .5f;
+        collider.size = new Vector3(13, 2f, 13); // All these numbers need to be dynamically set
         //at some point
         //the center has to do with y positions of the points on the plane
         //the size has to do with idk???? it's definitely not a box
@@ -51,6 +61,7 @@ public class ScreenSpawner : MonoBehaviour {
         //setting to .5 will technically include all points
         //keep track of min and max y values when transforming plane to get y sizecollider.center = new Vector3(0, .4f, 0);
         Vector3[] vertices = theMesh.vertices;
+        //Map all the vertices to a new, curved location
         for (int i = 0; i < theMesh.vertexCount; i++) {
             Vector3 old = vertices[i];
             //Debug.Log("old " + old.y + " new " + (Math.Sqrt(225 + old.x * old.x) - 15));
@@ -59,134 +70,46 @@ public class ScreenSpawner : MonoBehaviour {
         theMesh.vertices = vertices;
         theMesh.RecalculateBounds();
         theMesh.RecalculateNormals();
-        //change y to 90 to make the orientation correct
-        //screen.transform.Rotate(0, -90, -90);
-        byte[] img = System.IO.File.ReadAllBytes("D:/Files/DroneSwarm/Test1.jpg");
-        Texture2D image_tex = new Texture2D(360, 640,
-            TextureFormat.DXT1, false);
-        //if the image does not load; This is problematic
-        if (!image_tex.LoadImage(img)) {
-            Debug.Log("mega failure");
-        }
-        screen.GetComponent<Renderer>().material.mainTexture = image_tex;
-        /*DroneControl controller =*/ screen.AddComponent<DroneControl>();
+        screen.AddComponent<DroneControl>();
         return screen;
     }
 
+
+
+
+
+
+
     // Use this for initialization
     void Start () {
-        //create Plane
-       
-        //rotation is always X 90 and the Y Rotation changes the image moves
-
-        //TODO: add a line here changing the mesh collider to be a box collider
-        /*
-          
-          
-        toDraw = new List<Vector3>();
-        bad = false;
-        
-        GameObject ob = Instantiate(new_screen, new Vector3(0, 0, -10), Quaternion.identity);
-        Debug.Log("something");
-        Mesh myMesh = ob.GetComponentInChildren<MeshFilter>().mesh;
-        foreach (Vector3 v in myMesh.vertices) {
-            Debug.Log(v);
-        }
-        for (int i = 0; i < myMesh.triangles.Length - 3; i++) {
-            Debug.Log(myMesh.triangles[i]
-                + " " + myMesh.triangles[i + 1]
-                + " " + myMesh.triangles[i + 2]);
-        }
-        return;
-        
-        
-         
-        //also screens should be spawned behind the camera
-        GameObject obj = Instantiate(original_screen, new Vector3(0, 0, 0), Quaternion.identity);
-        //obj.transform.Rotate(90, 0, 0);
-        theMesh = obj.GetComponentInChildren<MeshFilter>().mesh;
-        //theMesh.subMeshCount = 2;
-        //theMesh.SetTriangles
-        //return;
-        int[] subMesh = new int[72];
-
-
-        for (int i = 0; i < theMesh.vertices.Length; i++) {
-            ver.Add(theMesh.vertices[i]);
-        }
-        //Debug.Log()
-        //theMesh.Clear();
-        //theMesh.subMeshCount = 2;
-        
-        int k = 0; //vertex counter
-                   //find all the triangles that matter
-        for (int i = 0; i < 24; k += 3) {
-            if (k > 297) {
-                Debug.Log("Only found " + i);
-                break;
-            }
-            bool con = false;
-            //go through all three vertices in the triangle
-            for (int j = k; j < k + 3; j++) {
-                Vector3 temp = theMesh.vertices[theMesh.triangles[j]];
-                Vector3 test = new Vector3(0, temp.y, temp.z);
-                Debug.Log(Vector3.Distance(test, new Vector3(0, 0, -4.7f)));
-                //Check to see if the distance is bad
-                if (Vector3.Distance(test, new Vector3(0, 0, -4.7f)) > 5.0f) {
-                    Debug.Log("Cut offs by radius");
-                    con = true;
-                    break;
-                }
-            }
-            //this triangle is no good
-            if (con) {
-                continue;
-            }
-            Vector3 v1 = theMesh.vertices[theMesh.triangles[k]]
-                - theMesh.vertices[theMesh.triangles[k + 1]];
-            Vector3 v2 = theMesh.vertices[theMesh.triangles[k]]
-                - theMesh.vertices[theMesh.triangles[k + 2]];
-            Vector3 v3 = Vector3.Cross(v1, v2).normalized;
-            if (Mathf.Abs(v3.x) < .3f && Mathf.Abs(v3.y) < .3f && Mathf.Abs(v3.z) > .5f) {
-                Debug.Log("found some");
-                for (int l = 0; l < 3; l++) {
-                    subMesh[i + l] = theMesh.triangles[k + l]; 
-                }
-                i++;
-            }
-            else {
-                //Debug.Log("v3 is" + v3);
-                //Debug.Log("v2 is" + v2);
-                //Debug.Log("v1 is " + v1);
-                Debug.Log("massive failure");
-            }
-            if (i == 24) {
-                Debug.Log("found them all");
-                theMesh.subMeshCount = 2;
-                theMesh.SetTriangles(subMesh, 1);
-            }
-        }
-        MeshRenderer mr = obj.GetComponentInChildren<MeshRenderer>();
-        byte[] img = System.IO.File.ReadAllBytes("D:/Files/DroneSwarm/Test1.jpg");
-        Texture2D image_tex = new Texture2D(1, 1, TextureFormat.DXT1, false);
-        if (!image_tex.LoadImage(img)) {
-            Debug.Log("mega failure");
-        }
-        //obj.GetComponentInChildren<Renderer>().materials[1].mainTexture = image_tex;
-        return;
-        */
-
-
-
+        current = 0;
+        oneFeed = new Vector3[1];
+        twoFeeds = new Vector3[2];
+        threeFeeds = new Vector3[3];
+        fourFeeds = new Vector3[4];
+        oneFeed[0] = new Vector3(0, 1, -15);
+        twoFeeds[1] = new Vector3(-3, 1, -14.6969f);
+        twoFeeds[0] = new Vector3(3, 1, -14.6969f);
+        threeFeeds[2] = new Vector3(-3, -1.5f, -14.6969f);
+        threeFeeds[1] = new Vector3(0, 2.5f, -15);
+        threeFeeds[0] = new Vector3(3, -1.5f, -14.6969f);
+        fourFeeds[2] = new Vector3(-3, -1.5f, -14.6969f);
+        fourFeeds[3] = new Vector3(-3, 2.5f, -14.6969f);
+        fourFeeds[0] = new Vector3(3, -1.5f, -14.6969f);
+        fourFeeds[1] = new Vector3(3, 2.5f, -14.6969f);
+        userRadius = GetComponent<CapsuleCollider>().radius;
         startTime = DateTime.Now;
         string data = "";
+        UISphere = GetComponent<CapsuleCollider>();
         // the shell will generate a config file for every single run of main
         // unity will always read from this config file
         // need to implement some parsing so that # are ignored
         try {
             StreamReader sr = new StreamReader("C:/Users/Public/.config");
+            //read the data
             while (!sr.EndOfStream) {
                 data = sr.ReadLine();
+                //get vlc mode
                 if (data.Contains("vlc")) {
                     if (data.Contains("mode")) {
                         if (data.Contains("on"))
@@ -228,6 +151,10 @@ public class ScreenSpawner : MonoBehaviour {
                     //Debug.Log(w_image_path);
                     //Debug.Log(data);
                 }
+                else if (data.Contains("unity-spawns=")) {
+                   //Parser not written yet, please input spawns manually
+
+                }
             }
         }
         catch (Exception e) {
@@ -236,24 +163,61 @@ public class ScreenSpawner : MonoBehaviour {
         //total_feeds = 2;    
         screens = new DroneControl[total_feeds];
         //create all the screens
-        Debug.Log("Making " + total_feeds + " screen" + (total_feeds == 1 ? "" : "s"));
-        for (int i = 0; i < total_feeds; i++) {
-            screens[i] = createScreen().GetComponent<DroneControl>();
-            screens[i].Initialize(i+1, w_main_path,
-            matlab_active, vlc_active, target_detector_active);
-            float angle = -Mathf.PI * i / 8.0f;
-            screens[i].transform.position = new Vector3(Mathf.Cos(angle) * userRadius, i % 2 == 0 ? 0:5, Mathf.Sin(angle) * userRadius);
-            screens[i].setRotation();
+        //Debug.Log("Making " + total_feeds + " screen" + (total_feeds == 1 ? "" : "s"));
+        spawnScreen(0);
+    }
 
+    /*
+     * Precondition:    Start function must get data from config file
+     * Postcondition:   Creates all the screens
+     * Notes
+     */
+    void spawnScreen(int i) {
+        screens[i] = createScreen().GetComponent<DroneControl>();
+        Dictionary<string, string> info = new Dictionary<string, string>();
+        info["feed"] = Convert.ToString(i + 1);
+        info["location"] = w_main_path;
+        info["matlab_active"] = Convert.ToString(matlab_active);
+        info["vlc_active"] = Convert.ToString(vlc_active);
+        info["target_detector_active"] = Convert.ToString(target_detector_active);
+        info["user_radius"] = Convert.ToString(userRadius);
+        screens[i].Initialize(info);
+        screens[i].UISphere = UISphere;
+        float angle = -Mathf.PI * i / 8.0f;
+        //assign locations to all screens
+        switch (total_feeds) {
+            case 1:
+                screens[i].transform.position = oneFeed[i];
+                break;
+            case 2:
+                screens[i].transform.position = twoFeeds[i];
+                break;
+            case 3:
+                screens[i].transform.position = threeFeeds[i];
+                break;
+            case 4:
+                screens[i].transform.position = fourFeeds[i];
+                break;
         }
+        screens[i].setRotation();
     }
 
     // Update is called once per frame
     void Update () {
-		
+        //check to see if the previous screen has finished spawning
+        //and there are still screens left to spawn
+        if (screens[current].moved && current < total_feeds - 1) {
+            current++;
+            spawnScreen(current);
+        }
 	}
     
 
+    /*
+     * Precondition:    None
+     * Postcondition:   Sends a Kill signal to VLC, deletes image files
+     * Notes:
+     */
     private void OnApplicationQuit() {
         if (matlab_active && !target_detector_active) {
             //probably possible to predict which instance of Matlab to kill
@@ -292,22 +256,9 @@ public class ScreenSpawner : MonoBehaviour {
 
         //only need to close VLC and delete images if VLC is active
         if (vlc_active) {
-            //Look For VLC instances and Close them
-            /*foreach (var process in System.Diagnostics.Process.GetProcesses()) {
-                try {
-                    Debug.Log(process.ProcessName);
-                }
-                catch {
-
-                }
-            } */
-
-            //foreach (var process in System.Diagnostics.Process.GetProcessesByName("vlc")) {
-            //    process.CloseMainWindow();
-            //    process.Close();
             }
             //remove extra files
-            for (int i = 1; i <= 4; i++) {
+            for (int i = 1; i <= total_feeds; i++) {
                 string[] files = Directory.GetFiles(w_image_path + "/Feed" + i);
                 //look through files and if they are png or swp files, delete them
                 //probably need to add some sort of delay to prevent Sharing Violations
