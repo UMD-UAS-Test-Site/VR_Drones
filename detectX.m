@@ -22,15 +22,15 @@ clear;
 C = textread('C:\Users\Public\.config', '%s', 'delimiter', '\n');
 len = length(C{1});
 main_path = C{1}(18:len);
-len = length(C{13});
-feeds = str2num(C{13}(14:len));
-len = length(C{9});
-net = C{9}(13:len);
+len = length(C{14});
+feeds = str2num(C{14}(14:len));
+len = length(C{10});
+net = C{10}(13:len);
 %end
 load([main_path '\Docs\' net '.mat'], 'rcnn');
-ratings = [0, 0, 0]; %holds the confidence values for each feed
+ratings = zeros(1, feeds); %holds the confidence values for each feed
 sharelocation = [main_path '\.shared.txt'];
-used_files = ["", "", ""];
+used_files = ["", "", "", "", "", "", "", ""];
 
 while true 
     %look through all three feeds
@@ -99,7 +99,7 @@ while true
        file = fopen(sharelocation, 'w');
     end
     %write the confidences to file
-    for i = 1:3
+    for i = 1:feeds
         fprintf(file, ratings(i) + "\n");
     end
     fclose(file);

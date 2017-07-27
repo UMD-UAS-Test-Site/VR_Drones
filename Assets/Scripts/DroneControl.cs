@@ -293,11 +293,11 @@ public class DroneControl : MonoBehaviour {
                     float tmp_confidence = Convert.ToSingle(data);
                     //check to see if a false zero has occured
                     if (tmp_confidence == 0 && !timer.IsRunning) {
-                        Debug.Log("staring up the timer");
+                        //Debug.Log("staring up the timer");
                         timer.Start();
                     }
                     else if (timer.IsRunning && timer.ElapsedMilliseconds > 10000) {
-                        Debug.Log("1000 miliseconds have passed");
+                        //Debug.Log("1000 miliseconds have passed");
                         confidence = tmp_confidence;
                         timer.Reset();
                     }
@@ -456,7 +456,8 @@ public class DroneControl : MonoBehaviour {
         Vector3 direction = new Vector3(Mathf.Sin(-Camera.main.transform.eulerAngles.y),
                             Mathf.Sin(-Camera.main.transform.eulerAngles.x),
                             Mathf.Cos(-Camera.main.transform.eulerAngles.y));
-        Ray ray = new Ray(Camera.main.transform.position + direction * (userRadius + 5), -direction);
+        Ray ray = new Ray(Camera.main.transform.position + Camera.main.transform.forward * (userRadius + 2),\
+            -Camera.main.transform.forward);
         RaycastHit hit;
         UISphere.Raycast(ray, out hit, 20);
         return hit.point;
@@ -508,7 +509,7 @@ public class DroneControl : MonoBehaviour {
             //should put this in another function when possible
             if (matlab_active && frame % 5 == 0) {
                 getImageProcess();
-                if (confidence > threshold && transform.localScale.z < .6f) {
+                if (confidence > threshold && transform.localScale.z < .5f) {
                     enhancing = true;
                 }
             }
